@@ -2,7 +2,8 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { IconAlertCircle, IconCheckCircle, IconEye, IconEyeOff, IconListChecks, IconLock } from "@/components/icons";
+import Image from "next/image";
+import { IconAlertCircle, IconCheckCircle, IconEye, IconEyeOff, IconLock } from "@/components/icons";
 
 /**
  * Login — same authentication flow as before (`POST /api/auth/login`,
@@ -61,11 +62,8 @@ function LoginForm() {
         {/* Brand panel — hidden on small screens, full panel from md up. */}
         <div className="hidden flex-col justify-between bg-accent p-8 text-white md:flex dark:bg-indigo-950">
           <div>
-            <div className="mb-6 inline-flex items-center gap-2 text-lg font-bold">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/15">
-                <IconListChecks className="h-5 w-5" />
-              </span>
-              TaskTracker
+            <div className="mb-6">
+              <Image src="/logo/tasklab-text.png" alt="TaskLab" width={180} height={100} className="h-auto w-full max-w-full" />
             </div>
             <h2 className="text-2xl font-bold leading-snug">Plan, track and finish your team&apos;s work.</h2>
             <ul className="mt-6 space-y-2 text-sm text-white/85">
@@ -80,10 +78,7 @@ function LoginForm() {
         {/* Form panel */}
         <div className="p-6 sm:p-8">
           <div className="mb-6 flex items-center gap-2 md:hidden">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-white">
-              <IconListChecks className="h-5 w-5" />
-            </span>
-            <span className="text-lg font-bold">TaskTracker</span>
+            <Image src="/logo/tasklab-icon.png" alt="TaskLab" width={32} height={32} className="h-8 w-8 rounded-lg object-contain" />
           </div>
 
           <h1 className="text-xl font-bold tracking-tight">Sign in</h1>

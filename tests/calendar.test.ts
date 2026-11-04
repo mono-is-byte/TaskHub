@@ -168,6 +168,17 @@ describe("fetchCalendarData scoping", () => {
   });
 
   it("excludes tasks and holidays outside the range", async () => {
+    // Drop multi-day holiday fixtures from earlier tests that now overlap this
+    // window, so the "outside the range" expectation stays deterministic.
+    await db.holiday.deleteMany({
+      where: {
+        date: { lte: day(12) },
+        OR: [
+          { endDate: null, date: { gte: day(10) } },
+          { endDate: { gte: day(10) } },
+        ],
+      },
+    });
     const data = await fetchCalendarData(db, { id: fx.users.member, isSuperAdmin: false }, {
       from: day(10), to: day(12),
     });

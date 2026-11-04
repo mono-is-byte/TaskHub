@@ -6,8 +6,8 @@ const bengali = Noto_Sans_Bengali({ subsets: ["bengali", "latin"], variable: "--
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "TaskTracker",
-  description: "Self-hosted team task tracker — Kanban, timeline, calendar and reports.",
+  title: "TaskLab",
+  description: "Self-hosted team TaskLab — Kanban, timeline, calendar and reports.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

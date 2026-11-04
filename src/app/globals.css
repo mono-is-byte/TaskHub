@@ -403,6 +403,10 @@ body {
   mask-image: none;
 }
 
+/* Brand mark: icon logo when the sidebar is collapsed, text logo when expanded. */
+.sb-logo-ico { display: none; }
+.sb-logo-text { display: block; }
+
 /* ── Collapsible sidebar & mobile drawer (change request: sidebar toggle) ──
    Expanded/collapsed is one attribute on <html data-sb="…"> (restored before
    paint by the root layout's inline script), the mobile drawer is
@@ -478,12 +482,14 @@ body {
   html[data-sb="collapsed"] .sb-proj-dots,
   html[data-sb="collapsed"] .sb-create,
   html[data-sb="collapsed"] .sb-msg { display: none; }
-  /* Keep the brand link as an invisible spacer (text-lg line + mb-4 = 44 px):
-     without it the nav would start at the very top of the rail, where the
-     toggle button straddles the edge and would overlap the first icon. The
-     nowrap brand text is clipped so the rail never gets a horizontal
-     scrollbar (overflow-y: auto computes overflow-x to auto). */
-  html[data-sb="collapsed"] .sb-logo { visibility: hidden; white-space: nowrap; overflow: hidden; }
+  /* Collapsed rail keeps the brand mark as an icon (icon logo) so the rail
+     never collapses to an empty header; the text logo hides. The brand link
+     keeps mb-4 spacing so the nav never starts at the very top of the rail,
+     where the toggle button straddles the edge and would overlap. The nowrap
+     brand text is clipped so the rail never gets a horizontal scrollbar
+     (overflow-y: auto computes overflow-x to auto). */
+  html[data-sb="collapsed"] .sb-logo-ico { display: block; }
+  html[data-sb="collapsed"] .sb-logo-text { display: none; }
   html[data-sb="collapsed"] .sb-aside nav a { justify-content: center; }
   html[data-sb="collapsed"] .sb-section-head { justify-content: center; }
   /* Section separators in the rail (change request): the group headings

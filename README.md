@@ -1,8 +1,8 @@
-# TaskTracker
+# TaskLab
 
 > ⚠️ This project is under active development and testing. Use at your own risk.
 
-A self-hosted, multi-user task tracker - a lightweight project management tool for small teams.
+A self-hosted, multi-user TaskLab - a lightweight project management tool for small teams.
 Kanban boards, an inline-editable table, timeline, workload, calendar and reports, with
 per-project roles, field-level permissions, custom workflows and automation.
 
@@ -50,7 +50,7 @@ per-project roles, field-level permissions, custom workflows and automation.
 
 ## Overview
 
-TaskTracker is a single-tenant project and issue tracker intended to be run by a team on
+TaskLab is a single-tenant project and issue tracker intended to be run by a team on
 its own infrastructure. It keeps the workflows teams actually need - configurable
 statuses, per-project roles, field-level permissions, time tracking and reporting - without
 the weight of an enterprise suite.
@@ -228,7 +228,7 @@ would be regenerated for the new database.
 ## Project Structure
 
 ```text
-Task-Tracker/
+TaskLab/
 ├─ prisma/
 │  ├─ schema.prisma          # users, projects, tasks, roles, workflow, timer…
 │  ├─ seed.ts                # demo data + default roles, statuses, automation
@@ -279,8 +279,8 @@ Task-Tracker/
 ### 1. Clone & install
 
 ```bash
-git clone https://github.com/mono-is-byte/Task-Tracker.git
-cd Task-Tracker
+git clone https://github.com/mono-is-byte/TaskLab.git
+cd TaskLab
 npm install
 ```
 

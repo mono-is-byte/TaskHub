@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { db } from "@/lib/db";
 import { listProjectsForUser, requireViewer } from "@/lib/server";
 import { mergeRoles } from "@/lib/permissions";
@@ -58,8 +59,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       {/* Phase 6: the sidebar is sticky + scrolls on its own, so navigation
           stays reachable while long pages scroll. */}
       <aside id="app-sidebar" className="sb-aside glass sticky top-0 flex h-screen w-52 shrink-0 flex-col overflow-y-auto border-r border-line p-3">
-        <Link href="/" className="sb-logo mb-4 px-2 text-lg font-bold tracking-tight text-accent">
-          TaskTracker
+        <Link href="/" className="sb-logo mb-4 flex items-center gap-2 px-2 text-lg font-bold tracking-tight text-accent" aria-label="TaskLab">
+          {/* Icon logo — collapsed sidebar */}
+          <Image src="/logo/tasklab-icon.png" alt="TaskLab" width={20} height={20} className="sb-logo-ico h-5 w-5 shrink-0" />
+          {/* Text logo — expanded sidebar */}
+          <Image src="/logo/tasklab-text.png" alt="TaskLab" width={36} height={20} className="sb-logo-text h-5 w-auto max-w-full shrink-0" />
         </Link>
         <nav className="flex flex-col gap-1 text-sm">
           <NavLink href="/" exact title="Dashboard"><IconHome className="h-4 w-4 shrink-0" /> <span className="sb-label">Dashboard</span></NavLink>

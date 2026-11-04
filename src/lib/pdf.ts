@@ -195,7 +195,7 @@ export async function buildReportPdf(input: ReportPdfInput): Promise<jsPDF> {
   const c = ctx(doc, 16);
 
   // Header
-  text(c, "TASKTRACKER", { size: 8, color: "#94a3b8", gap: 1 });
+  text(c, "TaskLab", { size: 8, color: "#94a3b8", gap: 1 });
   text(c, `${input.project.key} — Project Reports`, { size: 16, bold: true, gap: 0.5 });
   text(c, input.project.name, { size: 10, color: "#64748b", gap: 0.5 });
   text(c, `Generated ${input.generatedAt.toLocaleString()}`, { size: 8, color: "#94a3b8" });
@@ -253,7 +253,7 @@ export async function buildReportPdf(input: ReportPdfInput): Promise<jsPDF> {
     );
   }
 
-  footer(c, `TaskTracker · ${input.project.key} · ${input.generatedAt.toLocaleDateString()}`);
+  footer(c, `TaskLab · ${input.project.key} · ${input.generatedAt.toLocaleDateString()}`);
   return doc;
 }
 
@@ -348,7 +348,7 @@ export async function buildCalendarPdf(input: CalendarPdfInput): Promise<jsPDF> 
     }
   });
 
-  footer(c, `TaskTracker · Calendar · ${input.generatedAt.toLocaleDateString()}`);
+  footer(c, `TaskLab · Calendar · ${input.generatedAt.toLocaleDateString()}`);
   return doc;
 }
 
@@ -376,7 +376,7 @@ export async function buildDashboardPdf(input: DashboardPdfInput): Promise<jsPDF
   const doc = await openPdf("portrait");
   const c = ctx(doc, 16);
 
-  text(c, "TASKTRACKER", { size: 8, color: "#94a3b8", gap: 1 });
+  text(c, "TaskLab", { size: 8, color: "#94a3b8", gap: 1 });
   text(c, "Dashboard", { size: 16, bold: true, gap: 0.5 });
   text(c, input.scopeLabel, { size: 10, color: "#64748b", gap: 0.5 });
   text(c, `Generated ${input.generatedAt.toLocaleString()}`, { size: 8, color: "#94a3b8" });
@@ -490,6 +490,6 @@ export async function buildDashboardPdf(input: DashboardPdfInput): Promise<jsPDF
     );
   }
 
-  footer(c, `TaskTracker · Dashboard · ${input.generatedAt.toLocaleDateString()}`);
+  footer(c, `TaskLab · Dashboard · ${input.generatedAt.toLocaleDateString()}`);
   return doc;
 }
