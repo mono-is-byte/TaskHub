@@ -63,7 +63,7 @@ function LoginForm() {
         <div className="hidden flex-col justify-between bg-accent p-8 text-white md:flex dark:bg-indigo-950">
           <div>
             <div className="mb-6">
-              <Image src="/logo/tasklab-text.png" alt="TaskLab" width={180} height={100} className="h-auto w-full max-w-full" />
+              <Image src="/logo/taskhub-text.png" alt="TaskHub" width={180} height={100} className="h-auto w-full max-w-full" />
             </div>
             <h2 className="text-2xl font-bold leading-snug">Plan, track and finish your team&apos;s work.</h2>
             <ul className="mt-6 space-y-2 text-sm text-white/85">
@@ -78,7 +78,7 @@ function LoginForm() {
         {/* Form panel */}
         <div className="p-6 sm:p-8">
           <div className="mb-6 flex items-center gap-2 md:hidden">
-            <Image src="/logo/tasklab-icon.png" alt="TaskLab" width={32} height={32} className="h-8 w-8 rounded-lg object-contain" />
+            <Image src="/logo/taskhub-icon.png" alt="TaskHub" width={32} height={32} className="h-8 w-8 rounded-lg object-contain" />
           </div>
 
           <h1 className="text-xl font-bold tracking-tight">Sign in</h1>

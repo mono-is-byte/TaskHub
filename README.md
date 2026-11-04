@@ -1,8 +1,8 @@
-# TaskLab
+# TaskHub
 
 > ⚠️ This project is under active development and testing. Use at your own risk.
 
-A self-hosted, multi-user TaskLab - a lightweight project management tool for small teams.
+A self-hosted, multi-user TaskHub - a lightweight project management tool for small teams.
 Kanban boards, an inline-editable table, timeline, workload, calendar and reports, with
 per-project roles, field-level permissions, custom workflows and automation.
 
@@ -50,7 +50,7 @@ per-project roles, field-level permissions, custom workflows and automation.
 
 ## Overview
 
-TaskLab is a single-tenant project and issue tracker intended to be run by a team on
+TaskHub is a single-tenant project and issue tracker intended to be run by a team on
 its own infrastructure. It keeps the workflows teams actually need - configurable
 statuses, per-project roles, field-level permissions, time tracking and reporting - without
 the weight of an enterprise suite.
@@ -228,7 +228,7 @@ would be regenerated for the new database.
 ## Project Structure
 
 ```text
-TaskLab/
+TaskHub/
 ├─ prisma/
 │  ├─ schema.prisma          # users, projects, tasks, roles, workflow, timer…
 │  ├─ seed.ts                # demo data + default roles, statuses, automation
@@ -279,8 +279,8 @@ TaskLab/
 ### 1. Clone & install
 
 ```bash
-git clone https://github.com/mono-is-byte/TaskLab.git
-cd TaskLab
+git clone https://github.com/mono-is-byte/TaskHub.git
+cd TaskHub
 npm install
 ```
 
