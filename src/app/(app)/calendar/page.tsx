@@ -8,7 +8,7 @@ import { dayKey, isWeekendDay, monthGrid, weekGrid, occursOn, type CalendarData,
 import { classifyDay, holidayDayKeys, type ExceptionRow, type HolidaySpan } from "@/lib/holidayDates";
 import { TIMER_HEX, TIMER_LABEL } from "@/lib/timerFormat";
 import CalendarSettings from "@/components/CalendarSettings";
-import MobileTopBar from "@/components/MobileTopBar";
+import { MobileTopBar } from "@/components/SidebarToggle";
 import {
   IconChevronLeft, IconChevronRight, IconDownload, IconFlag, IconSliders, IconSun, IconX,
 } from "@/components/icons";

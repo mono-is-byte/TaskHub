@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import MobileTopBar from "@/components/MobileTopBar";
+import { MobileTopBar } from "@/components/SidebarToggle";
 
 /**
  * Audit Log — PHASE 6.

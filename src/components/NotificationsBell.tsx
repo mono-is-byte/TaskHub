@@ -80,7 +80,7 @@ export default function NotificationsBell() {
       <button
         ref={btnRef}
         onClick={toggle}
-        className="relative rounded px-1.5 py-1 text-muted transition-colors hover:bg-line hover:text-accent"
+        className="relative rounded px-2 py-1 text-muted transition-colors hover:bg-line hover:text-accent"
         title="Notifications"
         aria-expanded={open}
         aria-label={unread > 0 ? `Notifications (${unread} unread)` : "Notifications"}

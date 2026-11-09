@@ -4,7 +4,7 @@ import { listProjectsForUser, requireViewer } from "@/lib/server";
 import { designationLabel } from "@/lib/designation";
 import { dashboardLists, dashboardSummary } from "@/lib/dashboard";
 import StatBar from "@/components/StatBar";
-import MobileTopBar from "@/components/MobileTopBar";
+import { MobileTopBar } from "@/components/SidebarToggle";
 import DashboardProjectFilter from "@/components/DashboardProjectFilter";
 import DashboardExport from "@/components/DashboardExport";
 import {

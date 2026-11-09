@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { loadProject, requireViewer } from "@/lib/server";
 import { memberRoleLabels } from "@/lib/memberLabel";
 import ProjectTabs from "@/components/ProjectTabs";
-import MobileTopBar from "@/components/MobileTopBar";
+import { MobileTopBar } from "@/components/SidebarToggle";
 
 const TABS = [
   ["board", "Board"],

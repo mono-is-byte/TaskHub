@@ -6,7 +6,7 @@ import { api } from "@/lib/client";
 import { GENDERS } from "@/lib/accountRules";
 import Avatar from "@/components/Avatar";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import MobileTopBar from "@/components/MobileTopBar";
+import { MobileTopBar } from "@/components/SidebarToggle";
 import { IconPlus } from "@/components/icons";
 
 /**

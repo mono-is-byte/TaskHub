@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import MobileTopBar from "@/components/MobileTopBar";
+import { MobileTopBar } from "@/components/SidebarToggle";
 
 interface Role {
   id: string;

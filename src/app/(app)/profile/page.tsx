@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Avatar from "@/components/Avatar";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import MobileTopBar from "@/components/MobileTopBar";
+import { MobileTopBar } from "@/components/SidebarToggle";
 import { describeDevice, sessionStatus, timeAgo, timeUntil } from "@/lib/sessionInfo";
 import { GENDERS, USERNAME_MAX, USERNAME_MIN, usernameProblems } from "@/lib/accountRules";
 

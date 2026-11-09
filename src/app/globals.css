@@ -479,7 +479,7 @@ body {
   html[data-sb-mobile="open"] .sb-toggle { display: inline-flex; left: 0.75rem; right: auto; }
   html[data-sb-mobile="open"] .sb-aside > nav { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin-top: 3rem; }
   html[data-sb-mobile="open"] .sb-backdrop { display: block; }
-  html[data-sb-mobile="open"] { overflow: hidden; }
+  /* Removed: html[data-sb-mobile="open"] { overflow: hidden; } — handled in JS to avoid layout shift */
   /* Pinned bottom section on the mobile drawer: never scrolls. */
   html[data-sb-mobile="open"] .sb-foot { flex-shrink: 0; padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px)); }
 }
@@ -521,18 +521,24 @@ body {
   html[data-sb="collapsed"] .sb-completed { margin-top: 0.5rem; border-top: 1px solid var(--line); padding-top: 0.5rem; }
   /* Collapsed rail: bottom items (avatar, bell, theme, profile, logout) share one
      column, one 40x40 hit-area, one hover treatment — no per-item boxes. */
-  html[data-sb="collapsed"] .sb-foot { align-items: center !important; gap: 0.375rem !important; }
+  html[data-sb="collapsed"] .sb-foot { align-items: center !important; gap: 0.0625rem !important; }
   html[data-sb="collapsed"] .sb-user {
-    flex-direction: column !important; align-items: center !important; gap: 0.375rem !important;
-    padding: 0.375rem 0 !important; width: 100% !important; background: transparent !important; border: none !important;
+    flex-direction: column !important; align-items: center !important; gap: 0.0625rem !important;
+    padding: 0.125rem 0 !important; width: 100% !important; background: transparent !important; border: none !important;
     -webkit-backdrop-filter: none !important; backdrop-filter: none !important; box-shadow: none !important;
   }
   html[data-sb="collapsed"] .sb-user > * {
     width: 2.5rem !important; height: 2.5rem !important; display: flex !important; align-items: center !important; justify-content: center !important;
     border-radius: 0.75rem !important; background: transparent !important; border: none !important; padding: 0 !important;
   }
-  html[data-sb="collapsed"] .sb-user img,
-  html[data-sb="collapsed"] .sb-user [aria-hidden] {
+  html[data-sb="collapsed"] .sb-user > span:first-child {
+    justify-content: center !important; gap: 0 !important;
+  }
+  html[data-sb="collapsed"] .sb-user > span:first-child > span:not([aria-hidden]) {
+    display: none !important;
+  }
+  html[data-sb="collapsed"] .sb-user > span:first-child img,
+  html[data-sb="collapsed"] .sb-user > span:first-child > span[aria-hidden] {
     width: 2rem !important; height: 2rem !important; font-size: 0.8125rem !important;
   }
   html[data-sb="collapsed"] .sb-user button,
@@ -543,7 +549,7 @@ body {
   html[data-sb="collapsed"] .sb-user button:hover,
   html[data-sb="collapsed"] .sb-user a:hover { background: color-mix(in srgb, var(--accent) 10%, transparent) !important; }
   html[data-sb="collapsed"] .sb-actions {
-    flex-direction: column !important; align-items: center !important; gap: 0.375rem !important; width: 100% !important;
+    flex-direction: column !important; align-items: center !important; gap: 0.0625rem !important; width: 100% !important;
   }
   html[data-sb="collapsed"] .sb-actions > * {
     width: 2.5rem !important; height: 2.5rem !important; display: flex !important; align-items: center !important; justify-content: center !important;
@@ -556,8 +562,8 @@ body {
   }
   html[data-sb="collapsed"] .sb-actions a:hover,
   html[data-sb="collapsed"] .sb-actions button:hover { background: color-mix(in srgb, var(--accent) 10%, transparent) !important; }
-  /* Normalize icon size across all collapsed bottom items. */
-  html[data-sb="collapsed"] .sb-foot svg { width: 1.25rem !important; height: 1.25rem !important; }
+  /* Normalize icon size across all collapsed bottom items to match nav icons (16px). */
+  html[data-sb="collapsed"] .sb-foot svg { width: 1rem !important; height: 1rem !important; }
   /* Bell badge sits on the icon corner, never stretches the box. */
   html[data-sb="collapsed"] .sb-user .relative { position: relative !important; width: 2.5rem !important; height: 2.5rem !important; display: flex !important; align-items: center !important; justify-content: center !important; }
   html[data-sb="collapsed"] .sb-user .relative > span { position: absolute !important; top: 0.125rem !important; right: 0.125rem !important; }
