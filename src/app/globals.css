@@ -569,6 +569,20 @@ body {
   html[data-sb="collapsed"] .sb-user .relative > span { position: absolute !important; top: 0.125rem !important; right: 0.125rem !important; }
 }
 
+/* Workspaces list: show 5 items at once, scroll if more. Collapsed rail unaffected. */
+html:not([data-sb="collapsed"]) .sb-workspace-list {
+  max-height: calc(5 * 1.625rem + 4 * 0.25rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+}
+/* Slim scrollbar for the workspaces list (light + dark). */
+.sb-workspace-list::-webkit-scrollbar { width: 6px; }
+.sb-workspace-list::-webkit-scrollbar-track { background: transparent; }
+.sb-workspace-list::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--muted) 40%, transparent); border-radius: 3px; }
+.sb-workspace-list::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--muted) 60%, transparent); }
+.sb-workspace-list { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--muted) 40%, transparent) transparent; }
+
 @media (prefers-reduced-motion: reduce) {
   .sb-toggle, .sb-aside { transition: none; }
   /* Liquid Glass: drop the lift/parallax hover so nothing moves. */

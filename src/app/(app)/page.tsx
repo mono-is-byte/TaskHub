@@ -293,15 +293,31 @@ export default async function MyWorkPage({ searchParams }: { searchParams: Promi
       )}
 
       {projects.length > 0 && (
-        <div className="mt-4">
-          <h2 className="mb-2 text-sm font-semibold">Projects</h2>
-          <div className="flex flex-wrap gap-2">
-            {projects.map((p) => (
-              <Link key={p.id} href={`/p/${p.id}/board`} className="tt-card px-3 py-2 text-sm transition-shadow hover:shadow">
-                <span className="font-mono text-xs text-slate-500">{p.key}</span> {p.name}
-              </Link>
-            ))}
-          </div>
+        <div className="mt-4 space-y-3">
+          {projects.filter((p) => !p.isCompleted).length > 0 && (
+            <div>
+              <h2 className="mb-2 text-sm font-semibold">WORKSPACES</h2>
+              <div className="flex flex-wrap gap-2">
+                {projects.filter((p) => !p.isCompleted).map((p) => (
+                  <Link key={p.id} href={`/p/${p.id}/board`} className="tt-card px-3 py-2 text-sm transition-shadow hover:shadow">
+                    <span className="font-mono text-xs text-slate-500">{p.key}</span> {p.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+          {projects.filter((p) => p.isCompleted).length > 0 && (
+            <div>
+              <h2 className="mb-2 text-sm font-semibold">COMPLETED</h2>
+              <div className="flex flex-wrap gap-2">
+                {projects.filter((p) => p.isCompleted).map((p) => (
+                  <Link key={p.id} href={`/p/${p.id}/board`} className="tt-card px-3 py-2 text-sm transition-shadow hover:shadow">
+                    <span className="font-mono text-xs text-slate-500">{p.key}</span> {p.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

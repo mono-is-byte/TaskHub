@@ -10,6 +10,7 @@ import NotificationsBell from "@/components/NotificationsBell";
 import Avatar from "@/components/Avatar";
 import NavLink from "@/components/NavLink";
 import SidebarToggle from "@/components/SidebarToggle";
+import AppFooter from "@/components/AppFooter";
 import { IconAuditLog, IconCalendar, IconHome, IconKey, IconUser, IconUsers } from "@/components/icons";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -97,7 +98,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
       {/* Mobile pages render their own top bar (MobileTopBar) in flow; pt-4 is just the page gutter. */}
-      <main className="min-w-0 flex-1 p-4 pt-4 md:px-6">{children}</main>
+      <main className="flex min-h-0 min-w-0 flex-1 flex-col p-4 pt-4 md:px-6">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">{children}</div>
+        <AppFooter />
+      </main>
     </div>
   );
 }

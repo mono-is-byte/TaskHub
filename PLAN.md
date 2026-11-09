@@ -590,3 +590,14 @@ later from a new migration if needed.
 - **Not done:** commit/push/deploy (no `git`/Vercel CLI here) — the live site still runs
   the 2026-10-25 build. Slow-load / realtime status-refresh work is paused by the owner.
 
+## Recent UI work (logo, sidebar, PWA, footer, workspaces)
+
+- Replaced PNG logos with 3 SVGs (name/icon/full); favicon + PWA icons via sharp.
+- Sidebar logo is now the collapse/drawer toggle; mobile top bar with page title.
+- Mobile drawer: pinned bottom section, body scroll lock, no content shift.
+- PWA: manifest, service worker (network-only for API/auth/SSE), installable icons.
+- Footer: shared `AppFooter` + `appConfig` (copyright, Beta badge, GitHub link).
+- Sidebar labels: "PROJECTS" → "WORKSPACES", "PROJECT DONE" → "COMPLETED".
+- Dashboard: "Projects" → "WORKSPACES", completed split into "COMPLETED" section.
+- Calendar compacted to fit one page; audit log scrollable container.
+

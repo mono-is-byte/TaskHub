@@ -209,3 +209,31 @@ Release sections will be added here as versions are tagged.
 - Legacy `Designation` / `StatusDesignation` tables and the write-only `User.locale` /
   `User.notifyPrefs` columns (migration
   `20261019000000_drop_legacy_designation_structures`).
+
+## UI refresh (logo, sidebar, PWA, footer)
+
+### Added
+- **New SVG logos**: `taskhub-name.svg`, `taskhub-icon.svg`, `taskhub-full.svg` (in
+  `public/logo/`); old PNG logos deleted. Favicon (`src/app/icon.svg`) synced.
+- **PWA support**: `manifest.webmanifest`, `sw.js` (network-only for API/auth/SSE,
+  auto-update), install icons (192/512/maskable/apple-touch) generated via sharp.
+- **App footer** (`AppFooter.tsx` + `appConfig.ts`): copyright, Beta badge, GitHub link;
+  single source of truth, safe-area padding.
+- **Mobile top bar** (`MobileTopBar`): icon + page title row, opens drawer.
+
+### Changed
+- **Sidebar**: logo is now the collapse/drawer toggle (Full when expanded, Icon when
+  collapsed). Mobile drawer has a pinned bottom section and scrollable nav list.
+- **Dashboard**: "Projects" → "WORKSPACES" section, completed workspaces split into
+  "COMPLETED".
+- **Sidebar labels**: "PROJECTS" → "WORKSPACES", "PROJECT DONE" → "COMPLETED";
+  tooltips/empty states updated ("New workspace", "No workspaces yet").
+- **Calendar**: compacted to fit on one page (no scroll).
+- **Audit log**: scrollable table container constrained to one page.
+
+### Fixed
+- Mobile drawer no longer shifts page content (body scroll lock via `position: fixed`,
+  MobileTopBar keeps its space with `visibility: hidden`).
+- Collapsed sidebar bottom items (avatar, bell, theme, profile, logout) aligned to one
+  40×40 slot with consistent 16px icons; bell no longer oversized.
+- Body scroll lock restored on close/unmount.

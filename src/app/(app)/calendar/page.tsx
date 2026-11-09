@@ -262,7 +262,7 @@ export default function CalendarPage() {
             return (
               <div
                 key={key}
-                className={`group relative ${view === "week" ? "min-h-96" : "min-h-28"} p-1 ${DAY_CLASS[info.kind]} ${
+                className={`group relative ${view === "week" ? "min-h-[320px]" : "min-h-[104px]"} p-1 ${DAY_CLASS[info.kind]} ${
                   info.kind === "holiday" || info.kind === "exception" ? "ring-1 ring-inset ring-red-200/70 dark:ring-red-900/50" : ""
                 } ${inMonth ? "" : "opacity-60"} ${key === todayKey ? "ring-2 ring-inset ring-accent" : ""}`}
               >

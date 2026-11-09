@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { IconAlertCircle, IconCheckCircle, IconEye, IconEyeOff, IconLock } from "@/components/icons";
+import AppFooter from "@/components/AppFooter";
 
 /**
  * Login — same authentication flow as before (`POST /api/auth/login`,
@@ -57,8 +58,9 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-canvas p-4">
-      <div className="glass-strong grid w-full max-w-4xl overflow-hidden rounded-2xl border border-line shadow-xl md:grid-cols-2">
+    <div className="flex min-h-screen flex-col bg-canvas">
+      <div className="flex flex-1 items-center justify-center p-4">
+        <div className="glass-strong grid w-full max-w-4xl overflow-hidden rounded-2xl border border-line shadow-xl md:grid-cols-2">
         {/* Brand panel — hidden on small screens, full panel from md up. */}
         <div className="hidden flex-col justify-between bg-accent p-8 text-white md:flex dark:bg-indigo-950">
           <div>
@@ -182,6 +184,8 @@ function LoginForm() {
           </a>
         </div>
       </div>
+      </div>
+      <AppFooter />
     </div>
   );
 }

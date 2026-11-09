@@ -56,6 +56,19 @@ export default function SidebarProjects({ projects, canCreate }: { projects: Sid
   const [projectsOpen, setProjectsOpen] = useState(true);
   const [completedOpen, setCompletedOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const activeItemRef = useRef<HTMLDivElement>(null);
+
+  // Scroll the active workspace into view within the scrollable list (not the page).
+  useEffect(() => {
+    const el = activeItemRef.current;
+    if (!el) return;
+    const container = el.closest('.sb-workspace-list') as HTMLElement | null;
+    if (!container) return;
+    const pageScrollY = window.scrollY;
+    el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    // Guarantee the page itself did not scroll.
+    window.scrollTo(0, pageScrollY);
+  }, [pathname, projects]);
 
   // Step 3: restore the persisted open/closed state (client only).
   useEffect(() => {
@@ -195,7 +208,7 @@ export default function SidebarProjects({ projects, canCreate }: { projects: Sid
   function item(p: SidebarProject) {
     const active = pathname?.startsWith(`/p/${p.id}`) ?? false;
     return (
-      <div key={p.id} className="sb-proj group relative">
+      <div key={p.id} className="sb-proj group relative" ref={active ? activeItemRef : undefined}>
         <Link
           href={`/p/${p.id}/board`}
           aria-current={active ? "page" : undefined}
@@ -285,10 +298,10 @@ export default function SidebarProjects({ projects, canCreate }: { projects: Sid
           onClick={toggleProjects}
           aria-expanded={projectsOpen}
           className="sb-section-toggle flex min-w-0 flex-1 items-center gap-1 rounded py-0.5 text-left text-xs uppercase text-muted hover:bg-line"
-          title={projectsOpen ? "Collapse the project list" : "Expand the project list"}
+          title={projectsOpen ? "Collapse the workspace list" : "Expand the workspace list"}
         >
           <IconChevronRight className={`h-3 w-3 shrink-0 transition-transform ${projectsOpen ? "rotate-90" : ""}`} />
-          <span className="sb-label truncate">Projects ({active.length})</span>
+          <span className="sb-label truncate">WORKSPACES ({active.length})</span>
         </button>
         {canCreate && (
           <button
@@ -300,8 +313,8 @@ export default function SidebarProjects({ projects, canCreate }: { projects: Sid
               setMsg("");
             }}
             className="sb-plus rounded p-0.5 text-muted hover:bg-line hover:text-accent"
-            title="New project"
-            aria-label="New project"
+            title="New workspace"
+            aria-label="New workspace"
           >
             <IconPlus className="h-3.5 w-3.5" />
           </button>
@@ -345,9 +358,11 @@ export default function SidebarProjects({ projects, canCreate }: { projects: Sid
               </div>
             </div>
           )}
-          {active.map(item)}
+          <div className="sb-workspace-list">
+            {active.map(item)}
+          </div>
           {active.length === 0 && completed.length === 0 && (
-            <span className="sb-label block px-2 text-xs text-muted">No projects yet.</span>
+            <span className="sb-label block px-2 text-xs text-muted">No workspaces yet.</span>
           )}
         </>
       ))}
@@ -358,10 +373,10 @@ export default function SidebarProjects({ projects, canCreate }: { projects: Sid
             onClick={toggleCompleted}
             aria-expanded={completedOpen}
             className="sb-section-toggle flex w-full items-center gap-1 rounded px-2 py-1 text-left text-xs uppercase text-muted hover:bg-line"
-            title="Projects whose tasks are all in a final status"
+            title="Workspaces whose tasks are all in a final status"
           >
             <IconChevronRight className={`h-3 w-3 shrink-0 transition-transform ${completedOpen ? "rotate-90" : ""}`} />
-            <span className="sb-label truncate">Project Done ({completed.length})</span>
+            <span className="sb-label truncate">COMPLETED ({completed.length})</span>
           </button>
           {collapse(completedOpen, <div>{completed.map(item)}</div>)}
         </div>

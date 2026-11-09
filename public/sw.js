@@ -3,7 +3,7 @@
    - Network-only for API/auth/SSE (real-time updates must work).
    - Navigation requests fall back to the network, then cached shell.
    - Auto-updates: new SW activates immediately on deploy. */
-const CACHE_NAME = "taskhub-shell-v1";
+const CACHE_NAME = "taskhub-shell-v2";
 const SHELL = ["/", "/manifest.webmanifest", "/icon-192.png", "/icon-512.png"];
 
 self.addEventListener("install", (event) => {
