@@ -62,19 +62,21 @@ function LoginForm() {
       <div className="flex flex-1 items-center justify-center p-4">
         <div className="glass-strong grid w-full max-w-4xl overflow-hidden rounded-2xl border border-line shadow-xl md:grid-cols-2">
         {/* Brand panel — hidden on small screens, full panel from md up. */}
-        <div className="hidden flex-col justify-between bg-black p-8 text-white md:flex">
+        <div className="hidden flex-col justify-between bg-accent p-8 text-white md:flex dark:bg-indigo-950">
           <div>
-            <div className="mb-6 flex justify-center">
-              <Image
-                src="/logo/taskhub-full.svg"
-                alt="TaskHub"
-                width={844}
-                height={369}
-                unoptimized
-                className="h-16 w-auto object-contain"
-              />
+            <div className="mb-6">
+              <div className="inline-flex items-center rounded-2xl bg-white p-3 shadow-lg ring-1 ring-black/5">
+                <Image
+                  src="/logo/taskhub-full.svg"
+                  alt="TaskHub"
+                  width={844}
+                  height={369}
+                  unoptimized
+                  className="h-16 w-auto object-contain"
+                />
+              </div>
             </div>
-            <h2 className="text-center text-2xl font-bold leading-snug">Plan, track and finish your team&apos;s work.</h2>
+            <h2 className="text-2xl font-bold leading-snug">Plan, track and finish your team&apos;s work.</h2>
             <ul className="mt-6 space-y-2 text-sm text-white/85">
               <li className="flex items-center gap-2"><IconCheckCircle className="h-4 w-4 shrink-0" /> Board, table, timeline and calendar in one place</li>
               <li className="flex items-center gap-2"><IconCheckCircle className="h-4 w-4 shrink-0" /> Working-hour timers and workload capacity</li>
@@ -86,19 +88,21 @@ function LoginForm() {
 
         {/* Form panel */}
         <div className="p-6 sm:p-8">
-          <div className="mb-6 flex justify-center md:hidden">
-            <Image
-              src="/logo/taskhub-full.svg"
-              alt="TaskHub"
-              width={844}
-              height={369}
-              unoptimized
-              className="h-10 w-auto object-contain"
-            />
+          <div className="mb-6 md:hidden">
+            <div className="inline-flex items-center rounded-xl bg-white p-2 shadow-sm ring-1 ring-black/5">
+              <Image
+                src="/logo/taskhub-full.svg"
+                alt="TaskHub"
+                width={844}
+                height={369}
+                unoptimized
+                className="h-9 w-auto object-contain"
+              />
+            </div>
           </div>
 
           <h1 className="text-xl font-bold tracking-tight">Sign in</h1>
-          <p className="mb-5 mt-2 text-sm text-muted">Welcome back. Enter your details to continue.</p>
+          <p className="mb-5 text-sm text-muted">Welcome back — enter your details to continue.</p>
 
           {error && (
             <p role="alert" className="mb-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/60 dark:text-red-300">
@@ -161,13 +165,7 @@ function LoginForm() {
               Remember me for 30 days
             </label>
 
-            <button
-              type="submit"
-              disabled={!canSubmit}
-              aria-busy={busy}
-              style={{ backgroundColor: "#000", color: "#fff" }}
-              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold leading-none transition hover:opacity-90 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-80 dark:ring-1 dark:ring-white/25"
-            >
+            <button type="submit" disabled={!canSubmit} className="tt-btn-primary w-full" aria-busy={busy}>
               {busy ? (
                 <>
                   <span className="tt-spin inline-block h-4 w-4 rounded-full border-2 border-current border-t-transparent" aria-hidden="true" />
@@ -175,16 +173,13 @@ function LoginForm() {
                 </>
               ) : (
                 <>
-                  <IconLock className="h-[18px] w-[18px] shrink-0" /> Sign in
+                  <IconLock className="h-4 w-4" /> Sign in
                 </>
               )}
             </button>
           </form>
 
-          <a
-            href="/forgot-password"
-            className="mt-4 block rounded-md py-1 text-center text-sm font-medium text-neutral-900 underline-offset-4 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/30 dark:text-neutral-200 dark:focus-visible:ring-white/30"
-          >
+          <a href="/forgot-password" className="mt-4 block text-center text-sm font-medium text-accent hover:underline">
             Forgot password?
           </a>
         </div>
