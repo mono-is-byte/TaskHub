@@ -8,6 +8,7 @@ import { dayKey, isWeekendDay, monthGrid, weekGrid, occursOn, type CalendarData,
 import { classifyDay, holidayDayKeys, type ExceptionRow, type HolidaySpan } from "@/lib/holidayDates";
 import { TIMER_HEX, TIMER_LABEL } from "@/lib/timerFormat";
 import CalendarSettings from "@/components/CalendarSettings";
+import MobileTopBar from "@/components/MobileTopBar";
 import {
   IconChevronLeft, IconChevronRight, IconDownload, IconFlag, IconSliders, IconSun, IconX,
 } from "@/components/icons";
@@ -158,7 +159,10 @@ export default function CalendarPage() {
   return (
     <div>
       <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
-        <h1 className="tt-title">Calendar</h1>
+        <div className="flex items-center gap-2.5">
+          <MobileTopBar />
+          <h1 className="tt-title">Calendar</h1>
+        </div>
         <button onClick={() => step(-1)} className="rounded border px-2 py-1 dark:border-slate-700" aria-label={view === "month" ? "Previous month" : "Previous week"} title={view === "month" ? "Previous month" : "Previous week"}><IconChevronLeft className="h-3.5 w-3.5" /></button>
         <button onClick={() => setAnchor(new Date())} className="rounded border px-2 py-1 dark:border-slate-700">Today</button>
         <button onClick={() => step(1)} className="rounded border px-2 py-1 dark:border-slate-700" aria-label={view === "month" ? "Next month" : "Next week"} title={view === "month" ? "Next month" : "Next week"}><IconChevronRight className="h-3.5 w-3.5" /></button>

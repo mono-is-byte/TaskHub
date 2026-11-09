@@ -1,5 +1,3 @@
-import Link from "next/link";
-import Image from "next/image";
 import { db } from "@/lib/db";
 import { listProjectsForUser, requireViewer } from "@/lib/server";
 import { mergeRoles } from "@/lib/permissions";
@@ -59,12 +57,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       {/* Phase 6: the sidebar is sticky + scrolls on its own, so navigation
           stays reachable while long pages scroll. */}
       <aside id="app-sidebar" className="sb-aside glass sticky top-0 flex h-screen w-52 shrink-0 flex-col overflow-y-auto border-r border-line p-3">
-        <Link href="/" className="sb-logo mb-4 flex items-center gap-2 px-2 text-lg font-bold tracking-tight text-accent" aria-label="TaskHub">
-          {/* Icon logo — collapsed sidebar */}
-          <Image src="/logo/taskhub-icon.png" alt="TaskHub" width={20} height={20} className="sb-logo-ico h-5 w-5 shrink-0" />
-          {/* Text logo — expanded sidebar */}
-          <Image src="/logo/taskhub-text.png" alt="TaskHub" width={36} height={20} className="sb-logo-text h-5 w-auto max-w-full shrink-0" />
-        </Link>
         <nav className="flex flex-col gap-1 text-sm">
           <NavLink href="/" exact title="Dashboard"><IconHome className="h-4 w-4 shrink-0" /> <span className="sb-label">Dashboard</span></NavLink>
           <NavLink href="/calendar" title="Calendar"><IconCalendar className="h-4 w-4 shrink-0" /> <span className="sb-label">Calendar</span></NavLink>
@@ -104,8 +96,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </div>
         </div>
       </aside>
-      {/* pt-12 keeps page content clear of the fixed mobile toggle; lg+ restores p-4. */}
-      <main className="min-w-0 flex-1 p-4 pt-12 md:px-6 lg:pt-4">{children}</main>
+      {/* Mobile pages render their own top bar (MobileTopBar) in flow; pt-4 is just the page gutter. */}
+      <main className="min-w-0 flex-1 p-4 pt-4 md:px-6">{children}</main>
     </div>
   );
 }

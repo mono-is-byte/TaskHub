@@ -6,6 +6,7 @@ import { api } from "@/lib/client";
 import { GENDERS } from "@/lib/accountRules";
 import Avatar from "@/components/Avatar";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import MobileTopBar from "@/components/MobileTopBar";
 import { IconPlus } from "@/components/icons";
 
 /**
@@ -192,7 +193,10 @@ export default function UsersPage() {
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <h1 className="text-2xl font-bold">Users</h1>
+        <div className="flex items-center gap-2.5">
+          <MobileTopBar />
+          <h1 className="text-2xl font-bold">Users</h1>
+        </div>
         <p className="text-xs text-slate-500">
           {isAdmin
             ? "Add and edit users and set their designation (a role from Roles & Permissions — labels only, never grants permissions)."

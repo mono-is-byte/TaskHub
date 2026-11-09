@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import MobileTopBar from "@/components/MobileTopBar";
 
 /**
  * Audit Log — PHASE 6.
@@ -76,7 +77,10 @@ export default function AdminAuditPage() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-xl font-bold">Audit Log</h1>
+        <div className="flex items-center gap-2.5">
+          <MobileTopBar />
+          <h1 className="text-xl font-bold">Audit Log</h1>
+        </div>
         <span className="text-[11px] text-muted">Showing the latest {limit} events</span>
       </div>
       <div className="mb-2 flex gap-2 text-sm">

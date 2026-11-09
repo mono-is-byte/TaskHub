@@ -403,10 +403,6 @@ body {
   mask-image: none;
 }
 
-/* Brand mark: icon logo when the sidebar is collapsed, text logo when expanded. */
-.sb-logo-ico { display: none; }
-.sb-logo-text { display: block; }
-
 /* ── Collapsible sidebar & mobile drawer (change request: sidebar toggle) ──
    Expanded/collapsed is one attribute on <html data-sb="…"> (restored before
    paint by the root layout's inline script), the mobile drawer is
@@ -415,28 +411,37 @@ body {
 .sb-toggle {
   position: fixed;
   top: 0.5rem;
-  left: 0.5rem;
+  left: 0.75rem;
   z-index: 60;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 0.625rem;
-  border: 1px solid var(--glass-border);
-  background: rgb(var(--glass-tint) / var(--glass-alpha-strong));
-  -webkit-backdrop-filter: blur(10px) saturate(var(--glass-saturate));
-  backdrop-filter: blur(10px) saturate(var(--glass-saturate));
+  height: 2.5rem;
+  border: none;
+  border-radius: 0.75rem;
+  background: transparent;
   color: var(--muted);
-  box-shadow: var(--glass-inner), 0 1px 2px rgb(15 23 42 / 0.08);
-  transition: left 0.2s ease, color 0.15s ease, background-color 0.15s ease;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 .sb-toggle:hover {
   color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
-.sb-ico-menu { display: inline-flex; }
-.sb-ico-close, .sb-ico-panel { display: none; }
+.sb-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Dark mode: the logo SVG has near-black (#030304) parts that vanish on a dark
+   sidebar/page surface. Invert + hue-rotate keeps the blue accent (#708af4)
+   while lifting the dark parts to light — no background box needed. */
+.dark .sb-toggle img,
+.dark .sb-logo-btn img {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Mobile top-bar logo button (MobileTopBar): plain icon mark, no chrome. */
+.sb-logo-btn { display: inline-flex; }
+.sb-logo-btn:hover { color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.sb-logo-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .sb-backdrop {
   display: none;
@@ -456,24 +461,34 @@ body {
     bottom: 0;
     left: 0;
     z-index: 40;
+    height: 100%;
     height: 100dvh;
     transform: translateX(-100%);
+    overflow: hidden;
   }
+  /* Closed on mobile: the drawer is opened by the MobileTopBar icon in the
+     page header, so the fixed logo button stays out of the way (it only renders
+     as the drawer's close mark while the drawer is open — see below). */
+  .sb-toggle { display: none; }
   html[data-sb-mobile="open"] .sb-aside {
     transform: translateX(0);
     box-shadow: 0 12px 32px -12px rgb(2 6 23 / 0.5);
   }
-  html[data-sb-mobile="open"] .sb-toggle { left: calc(13rem - 1.25rem); }
-  html[data-sb-mobile="open"] .sb-ico-menu { display: none; }
-  html[data-sb-mobile="open"] .sb-ico-close { display: inline-flex; }
+  /* Open drawer: the Full logo mark sits at the top (like the PC expanded
+     sidebar) and doubles as the close control; the nav clears below it. */
+  html[data-sb-mobile="open"] .sb-toggle { display: inline-flex; left: 0.75rem; right: auto; }
+  html[data-sb-mobile="open"] .sb-aside > nav { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin-top: 3rem; }
   html[data-sb-mobile="open"] .sb-backdrop { display: block; }
   html[data-sb-mobile="open"] { overflow: hidden; }
+  /* Pinned bottom section on the mobile drawer: never scrolls. */
+  html[data-sb-mobile="open"] .sb-foot { flex-shrink: 0; padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px)); }
 }
 
 /* Desktop: collapse to a compact icon rail. */
 @media (min-width: 1024px) {
-  .sb-toggle { left: calc(13rem - 1.25rem); }
-  html[data-sb="collapsed"] .sb-toggle { left: calc(3.5rem - 1.25rem); }
+  /* The fixed logo button lives outside the aside's flow, so push the nav
+     below it (the brand mark itself is the open/collapse control). */
+  html[data-sb] .sb-aside > nav { margin-top: 3rem; }
   html[data-sb="collapsed"] .sb-aside { width: 3.5rem; }
   html[data-sb="collapsed"] .sb-label,
   html[data-sb="collapsed"] .sb-section-toggle,
@@ -482,14 +497,6 @@ body {
   html[data-sb="collapsed"] .sb-proj-dots,
   html[data-sb="collapsed"] .sb-create,
   html[data-sb="collapsed"] .sb-msg { display: none; }
-  /* Collapsed rail keeps the brand mark as an icon (icon logo) so the rail
-     never collapses to an empty header; the text logo hides. The brand link
-     keeps mb-4 spacing so the nav never starts at the very top of the rail,
-     where the toggle button straddles the edge and would overlap. The nowrap
-     brand text is clipped so the rail never gets a horizontal scrollbar
-     (overflow-y: auto computes overflow-x to auto). */
-  html[data-sb="collapsed"] .sb-logo-ico { display: block; }
-  html[data-sb="collapsed"] .sb-logo-text { display: none; }
   html[data-sb="collapsed"] .sb-aside nav a { justify-content: center; }
   html[data-sb="collapsed"] .sb-section-head { justify-content: center; }
   /* Section separators in the rail (change request): the group headings
@@ -512,13 +519,48 @@ body {
   html[data-sb="collapsed"] .sb-collapse { grid-template-rows: 1fr; }
   html[data-sb="collapsed"] .sb-proj-link { display: flex; justify-content: center; padding: 0.375rem 0; }
   html[data-sb="collapsed"] .sb-completed { margin-top: 0.5rem; border-top: 1px solid var(--line); padding-top: 0.5rem; }
-  html[data-sb="collapsed"] .sb-user { flex-direction: column; align-items: center; gap: 0.25rem; padding: 0.375rem 0; }
-  html[data-sb="collapsed"] .sb-actions { flex-direction: column; align-items: center; }
+  /* Collapsed rail: bottom items (avatar, bell, theme, profile, logout) share one
+     column, one 40x40 hit-area, one hover treatment — no per-item boxes. */
+  html[data-sb="collapsed"] .sb-foot { align-items: center !important; gap: 0.375rem !important; }
+  html[data-sb="collapsed"] .sb-user {
+    flex-direction: column !important; align-items: center !important; gap: 0.375rem !important;
+    padding: 0.375rem 0 !important; width: 100% !important; background: transparent !important; border: none !important;
+    -webkit-backdrop-filter: none !important; backdrop-filter: none !important; box-shadow: none !important;
+  }
+  html[data-sb="collapsed"] .sb-user > * {
+    width: 2.5rem !important; height: 2.5rem !important; display: flex !important; align-items: center !important; justify-content: center !important;
+    border-radius: 0.75rem !important; background: transparent !important; border: none !important; padding: 0 !important;
+  }
+  html[data-sb="collapsed"] .sb-user img,
+  html[data-sb="collapsed"] .sb-user [aria-hidden] {
+    width: 2rem !important; height: 2rem !important; font-size: 0.8125rem !important;
+  }
+  html[data-sb="collapsed"] .sb-user button,
+  html[data-sb="collapsed"] .sb-user a {
+    width: 2.5rem !important; height: 2.5rem !important; display: flex !important; align-items: center !important; justify-content: center !important;
+    border-radius: 0.75rem !important; background: transparent !important; border: none !important; padding: 0 !important;
+  }
+  html[data-sb="collapsed"] .sb-user button:hover,
+  html[data-sb="collapsed"] .sb-user a:hover { background: color-mix(in srgb, var(--accent) 10%, transparent) !important; }
+  html[data-sb="collapsed"] .sb-actions {
+    flex-direction: column !important; align-items: center !important; gap: 0.375rem !important; width: 100% !important;
+  }
+  html[data-sb="collapsed"] .sb-actions > * {
+    width: 2.5rem !important; height: 2.5rem !important; display: flex !important; align-items: center !important; justify-content: center !important;
+    border-radius: 0.75rem !important; background: transparent !important; border: none !important; padding: 0 !important;
+  }
   html[data-sb="collapsed"] .sb-actions a,
-  html[data-sb="collapsed"] .sb-actions button { justify-content: center; }
-  html[data-sb="collapsed"] .sb-ico-panel { transform: rotate(180deg); }
-  .sb-ico-menu, .sb-ico-close { display: none; }
-  .sb-ico-panel { display: inline-flex; }
+  html[data-sb="collapsed"] .sb-actions button {
+    width: 2.5rem !important; height: 2.5rem !important; padding: 0 !important; justify-content: center !important;
+    border-radius: 0.75rem !important; background: transparent !important; border: none !important;
+  }
+  html[data-sb="collapsed"] .sb-actions a:hover,
+  html[data-sb="collapsed"] .sb-actions button:hover { background: color-mix(in srgb, var(--accent) 10%, transparent) !important; }
+  /* Normalize icon size across all collapsed bottom items. */
+  html[data-sb="collapsed"] .sb-foot svg { width: 1.25rem !important; height: 1.25rem !important; }
+  /* Bell badge sits on the icon corner, never stretches the box. */
+  html[data-sb="collapsed"] .sb-user .relative { position: relative !important; width: 2.5rem !important; height: 2.5rem !important; display: flex !important; align-items: center !important; justify-content: center !important; }
+  html[data-sb="collapsed"] .sb-user .relative > span { position: absolute !important; top: 0.125rem !important; right: 0.125rem !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {

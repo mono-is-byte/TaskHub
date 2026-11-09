@@ -4,6 +4,7 @@ import { listProjectsForUser, requireViewer } from "@/lib/server";
 import { designationLabel } from "@/lib/designation";
 import { dashboardLists, dashboardSummary } from "@/lib/dashboard";
 import StatBar from "@/components/StatBar";
+import MobileTopBar from "@/components/MobileTopBar";
 import DashboardProjectFilter from "@/components/DashboardProjectFilter";
 import DashboardExport from "@/components/DashboardExport";
 import {
@@ -131,9 +132,13 @@ export default async function MyWorkPage({ searchParams }: { searchParams: Promi
 
   return (
     <div>
+      {/* Mobile-only shared top bar: [TaskHub icon] + title (opens the drawer). */}
       <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <div className="flex items-center gap-2.5">
+            <MobileTopBar />
+            <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          </div>
           <p className="text-sm text-muted">
             Welcome back, {user.name} · {selected
               ? selected.name

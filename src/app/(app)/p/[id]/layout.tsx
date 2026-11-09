@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { loadProject, requireViewer } from "@/lib/server";
 import { memberRoleLabels } from "@/lib/memberLabel";
 import ProjectTabs from "@/components/ProjectTabs";
+import MobileTopBar from "@/components/MobileTopBar";
 
 const TABS = [
   ["board", "Board"],
@@ -39,8 +40,11 @@ export default async function ProjectLayout({
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <Link href="/" className="text-sm text-slate-500">← My Work</Link>
-        <h1 className="text-xl font-bold">
+        <div className="flex items-center gap-2.5">
+          <MobileTopBar />
+          <Link href="/" className="text-sm text-slate-500">← My Work</Link>
+        </div>
+        <h1 className="text-xl font-bold basis-full md:basis-auto">
           <span className="mr-2 font-mono text-sm" style={{ color: accent }}>{project.key}</span>
           {project.name}
         </h1>

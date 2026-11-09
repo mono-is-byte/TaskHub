@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Avatar from "@/components/Avatar";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import MobileTopBar from "@/components/MobileTopBar";
 import { describeDevice, sessionStatus, timeAgo, timeUntil } from "@/lib/sessionInfo";
 import { GENDERS, USERNAME_MAX, USERNAME_MIN, usernameProblems } from "@/lib/accountRules";
 
@@ -289,7 +290,10 @@ export default function ProfilePage() {
 
   return (
     <div className="mx-auto w-full max-w-5xl">
-      <h1 className="mb-4 text-2xl font-bold">Profile</h1>
+      <div className="mb-4 flex items-center gap-2.5">
+        <MobileTopBar />
+        <h1 className="text-2xl font-bold">Profile</h1>
+      </div>
       {msg && <p className="mb-3 rounded bg-slate-200 p-2 text-sm dark:bg-slate-800" role="status">{msg}</p>}
 
       {/* Change request: Profile (left) and Active Sessions (right) sit side by

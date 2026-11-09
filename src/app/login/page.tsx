@@ -63,7 +63,16 @@ function LoginForm() {
         <div className="hidden flex-col justify-between bg-accent p-8 text-white md:flex dark:bg-indigo-950">
           <div>
             <div className="mb-6">
-              <Image src="/logo/taskhub-text.png" alt="TaskHub" width={180} height={100} className="h-auto w-full max-w-full" />
+              <div className="inline-flex items-center rounded-2xl bg-white p-3 shadow-lg ring-1 ring-black/5">
+                <Image
+                  src="/logo/taskhub-full.svg"
+                  alt="TaskHub"
+                  width={844}
+                  height={369}
+                  unoptimized
+                  className="h-16 w-auto object-contain"
+                />
+              </div>
             </div>
             <h2 className="text-2xl font-bold leading-snug">Plan, track and finish your team&apos;s work.</h2>
             <ul className="mt-6 space-y-2 text-sm text-white/85">
@@ -77,8 +86,17 @@ function LoginForm() {
 
         {/* Form panel */}
         <div className="p-6 sm:p-8">
-          <div className="mb-6 flex items-center gap-2 md:hidden">
-            <Image src="/logo/taskhub-icon.png" alt="TaskHub" width={32} height={32} className="h-8 w-8 rounded-lg object-contain" />
+          <div className="mb-6 md:hidden">
+            <div className="inline-flex items-center rounded-xl bg-white p-2 shadow-sm ring-1 ring-black/5">
+              <Image
+                src="/logo/taskhub-full.svg"
+                alt="TaskHub"
+                width={844}
+                height={369}
+                unoptimized
+                className="h-9 w-auto object-contain"
+              />
+            </div>
           </div>
 
           <h1 className="text-xl font-bold tracking-tight">Sign in</h1>
