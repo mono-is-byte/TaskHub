@@ -430,12 +430,10 @@ body {
 }
 .sb-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* Dark mode: the logo SVG has near-black (#030304) parts that vanish on a dark
-   sidebar/page surface. Invert + hue-rotate keeps the blue accent (#708af4)
-   while lifting the dark parts to light — no background box needed. */
-.dark .sb-toggle img,
-.dark .sb-logo-btn img {
-  filter: invert(1) hue-rotate(180deg);
+/* Keep original logo colors in both light and dark modes. */
+.sb-toggle img,
+.sb-logo-btn img {
+  filter: none;
 }
 
 /* Mobile top-bar logo button (MobileTopBar): plain icon mark, no chrome. */
