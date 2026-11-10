@@ -5,7 +5,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useProject } from "@/hooks/useProject";
 import { useTicker } from "@/hooks/useTicker";
 import {
-  useTasks, patchTask, createTask, timerAction, removeTask, refreshTasks, type TaskRow,
+  useTasks, patchTask, createTask, timerAction, refreshTasks, type TaskRow,
 } from "@/lib/taskStore";
 import TaskDrawer from "@/components/TaskDrawer";
 import TaskMenu from "@/components/TaskMenu";
@@ -15,6 +15,7 @@ import { fmtDur } from "@/lib/timerFormat";
 import { boardTimeFields, liveStageTimes } from "@/lib/stageTime";
 import { canTransition } from "@/lib/workflow";
 import { buildTaskNotes, noteText } from "@/lib/notes";
+import { personInitials } from "@/lib/memberLabel";
 import { IconCalendar, IconClipboardCheck, IconPause, IconPlay, IconX } from "@/components/icons";
 
 type Card = TaskRow & {
@@ -44,10 +45,6 @@ const TIMER_BORDER: Record<string, string> = {
   paused: "border-l-transparent",
   not_started: "border-l-transparent",
 };
-
-function initials(name: string): string {
-  return name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
-}
 
 export default function BoardPage() {
   const params = useParams<{ id: string }>();
@@ -208,7 +205,7 @@ export default function BoardPage() {
               title={c.title}
               canRename={canManageCard(c)}
               canDelete={canDelete}
-              onChanged={() => void removeTaskRefetch(c.id)}
+              onChanged={() => refreshTasks(projectId)}
             />
           </div>
         </div>
@@ -240,7 +237,7 @@ export default function BoardPage() {
             </span>
           )}
           {c.estDays != null && <span className="inline-flex items-center gap-0.5" title="Est. days"><IconCalendar className="h-3 w-3" /> {c.estDays}d</span>}
-          {c.testedBy && <span className="inline-flex items-center gap-0.5" title={`Tested by ${c.testedBy.name}`}><IconClipboardCheck className="h-3 w-3" /> {initials(c.testedBy.name)}</span>}
+          {c.testedBy && <span className="inline-flex items-center gap-0.5" title={`Tested by ${c.testedBy.name}`}><IconClipboardCheck className="h-3 w-3" /> {personInitials(c.testedBy.name)}</span>}
         </div>
         {(() => {
           const live = liveStageTimes(c, now);
@@ -288,13 +285,6 @@ export default function BoardPage() {
         })()}
       </div>
     );
-  }
-
-  // The actions menu renamed/deleted the task — refresh the shared store.
-  function removeTaskRefetch(_id: string) {
-    // Rename: the store is refetched by the SSE event; delete: remove locally.
-    // TaskMenu performs its own API call, so just nudge the store.
-    refreshTasks(projectId);
   }
 
   return (

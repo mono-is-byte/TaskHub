@@ -153,7 +153,7 @@ function upsertTask(projectId: string, task: TaskRow) {
   e.listeners.forEach((l) => l());
 }
 
-export function removeTask(projectId: string, id: string) {
+function removeTask(projectId: string, id: string) {
   const e = entryFor(projectId);
   e.state = { ...e.state, tasks: e.state.tasks.filter((t) => t.id !== id) };
   e.listeners.forEach((l) => l());
@@ -220,8 +220,6 @@ export async function timerAction(projectId: string, id: string, action: "start"
 
 /** Subscribe a component to a project's task list. */
 export function useTasks(projectId: string): TaskStoreState & { refresh: () => void } {
-  const e = entryFor(projectId);
-
   const subscribe = useCallback((cb: () => void) => {
     const entry = entryFor(projectId);
     entry.listeners.add(cb);
@@ -237,7 +235,6 @@ export function useTasks(projectId: string): TaskStoreState & { refresh: () => v
 
   const getSnapshot = useCallback(() => entryFor(projectId).state, [projectId]);
   const state = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
-  void e;
 
   const refresh = useCallback(() => { void refreshTasks(projectId); }, [projectId]);
   return { ...state, refresh };

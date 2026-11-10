@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/client";
 import { buildCalendarPdf } from "@/lib/pdf";
-import { dayKey, isWeekendDay, monthGrid, weekGrid, occursOn, type CalendarData, type CalendarTask } from "@/lib/calendar";
+import { dayKey, monthGrid, weekGrid, occursOn, type CalendarData, type CalendarTask } from "@/lib/calendar";
 import { classifyDay, holidayDayKeys, type ExceptionRow, type HolidaySpan } from "@/lib/holidayDates";
 import { TIMER_HEX, TIMER_LABEL } from "@/lib/timerFormat";
 import CalendarSettings from "@/components/CalendarSettings";

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { fail, ok, readJson, requireMember } from "@/lib/api";
 import { db } from "@/lib/db";
 import { publish } from "@/lib/events";
+import type { Membership } from "@/lib/permissions";
 
 const EditBody = z.object({
   body: z.string().min(1).max(20000).optional(),
@@ -9,6 +10,13 @@ const EditBody = z.object({
   /** true = mark solved, false = clear the marker. */
   solved: z.boolean().optional(),
 });
+
+/** Remarks/feedback are writable only when the role's field rule allows it. */
+function canTouchKind(membership: Membership, kind: string): boolean {
+  if (membership.isSuperAdmin) return true;
+  if (kind === "remark" || kind === "feedback") return membership.fieldRules[kind] === "editable";
+  return true;
+}
 
 export async function PATCH(
   req: Request,
@@ -32,16 +40,11 @@ export async function PATCH(
   const canEditOthers = user.isSuperAdmin || membership.perms.edit_task_all === true;
   if (!isAuthor && !canEditOthers) return fail(403, "forbidden", "You can only edit your own comments.");
 
-  function canTouchKind(kind: string): boolean {
-    if (membership.isSuperAdmin) return true;
-    if (kind === "remark" || kind === "feedback") return membership.fieldRules[kind] === "editable";
-    return true;
-  }
-  if (!canTouchKind(comment.kind)) {
+  if (!canTouchKind(membership, comment.kind)) {
     return fail(403, "forbidden", `The ${comment.kind} field is read-only for your role.`);
   }
   const nextKind = parsed.data.kind ?? comment.kind;
-  if (!canTouchKind(nextKind)) {
+  if (!canTouchKind(membership, nextKind)) {
     return fail(403, "forbidden", `The ${nextKind} field is read-only for your role.`);
   }
 
@@ -95,12 +98,7 @@ export async function DELETE(
   const canDeleteOthers = user.isSuperAdmin || membership.perms.delete_task === true;
   if (!isAuthor && !canDeleteOthers) return fail(403, "forbidden", "You can only delete your own comments.");
 
-  function canTouchKind(kind: string): boolean {
-    if (membership.isSuperAdmin) return true;
-    if (kind === "remark" || kind === "feedback") return membership.fieldRules[kind] === "editable";
-    return true;
-  }
-  if (!canTouchKind(comment.kind)) {
+  if (!canTouchKind(membership, comment.kind)) {
     return fail(403, "forbidden", `The ${comment.kind} field is read-only for your role.`);
   }
 

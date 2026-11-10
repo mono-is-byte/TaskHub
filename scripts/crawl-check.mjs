@@ -2,7 +2,7 @@
 const BASE = process.env.APP_URL || "http://localhost:3000";
 
 const TOKEN = process.argv[2];
-if (!TOKEN) throw new Error("usage: node scripts/crawl-check.mjs <session-token> (see scripts/_tmp-session.mjs)");
+if (!TOKEN) throw new Error("usage: node scripts/crawl-check.mjs <session-token> (copy tt_session from the browser cookies after login)");
 
 const proj = await (async () => {
   const cookie = `tt_session=${TOKEN}`;

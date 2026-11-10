@@ -239,6 +239,8 @@ TaskHub/
 │  ├─ migrate-turso.mjs      # applies committed migrations to a remote Turso DB
 │  ├─ copy-local-to-turso.mjs # copies the local SQLite data up to a remote Turso DB
 │  ├─ create-admin.ts        # create/repair the fixed super-admin (local or Turso)
+│  ├─ repair-designations.ts # one-time pass: align stale user designations with held roles
+│  ├─ gen-pwa-icons.js       # rasterize the brand icon into the PWA PNG sizes
 │  ├─ crawl-check.mjs        # logs in and crawls every page / API route
 │  ├─ import-check.mjs       # CSV/XLSX import smoke check
 │  ├─ sse-check.mjs          # realtime (SSE) smoke check
@@ -546,6 +548,7 @@ dashboard aggregation, PDF generation, user management and Bangla-safe search.
 | `npm test` | Run the Vitest suite (with scratch DB setup) |
 | `npm run seed` | Seed demo data (`npm run seed -- --reset` to wipe first) |
 | `npm run admin:create` | Create/repair the fixed super-admin account (local or Turso, per env) |
+| `npm run repair:designations` | One-time pass: align stale user designations with the roles they hold |
 | `npm run db-push` | `prisma db push` for quick schema sync |
 | `npm run turso:migrate` | Apply the committed migrations to the remote Turso database |
 | `npm run turso:backup` | Take a verified, read-only snapshot of the remote Turso database into `backup/` |

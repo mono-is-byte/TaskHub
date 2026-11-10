@@ -358,25 +358,6 @@ export function IconTrendUp(props: IconProps) {
   );
 }
 
-/* ── Sidebar toggle (change request: collapsible sidebar) ─────────────── */
-
-export function IconPanelLeft(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <path d="M9 3v18" />
-    </Icon>
-  );
-}
-
-export function IconMenu(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <path d="M4 6h16M4 12h16M4 18h16" />
-    </Icon>
-  );
-}
-
 export function IconUser(props: IconProps) {
   return (
     <Icon {...props}>

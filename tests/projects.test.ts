@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { makeTestClient, taskKey } from "../src/lib/db";
 import { hashPassword } from "../src/lib/password";
 import { DEFAULT_ROLES, getMembership } from "../src/lib/permissions";
-import { ctxFromLoad, createTask, deleteTask, listTasks, updateTask, type TaskContext } from "../src/lib/tasks";
+import { ctxFromLoad, createTask, deleteTask, updateTask, type TaskContext } from "../src/lib/tasks";
 import { removeStatus } from "../src/lib/workflow-server";
 import { subscribeGlobal } from "../src/lib/events";
 import { listProjectMembers } from "../src/lib/members";

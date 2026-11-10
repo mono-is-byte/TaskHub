@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { clientIp, fail, ok, readJson, requireUser, serverError } from "@/lib/api";
+import { clientIp, fail, failureResponse, ok, readJson, requireUser, serverError } from "@/lib/api";
 import { db } from "@/lib/db";
-import { createHoliday, deleteHoliday, listHolidays, updateHoliday, type Failure } from "@/lib/holidays";
+import { createHoliday, deleteHoliday, listHolidays, updateHoliday } from "@/lib/holidays";
 
 /**
  * Holiday management for Calendar -> "Calendar Settings". Holidays are global
@@ -24,17 +24,6 @@ const CreateBody = z.object({
 
 const PatchBody = CreateBody;
 
-function failFrom(res: Failure, code: string): Response {
-  return fail(res.status, code, res.error);
-}
-
-function codeFor(status: number): string {
-  if (status === 403) return "forbidden";
-  if (status === 404) return "not_found";
-  if (status === 409) return "conflict";
-  return "validation";
-}
-
 export async function GET(req: Request) {
   const auth = await requireUser(req);
   if ("response" in auth) return auth.response;
@@ -56,7 +45,7 @@ export async function POST(req: Request) {
   }
   try {
     const res = await createHoliday(db, auth.user, parsed.data, clientIp(req));
-    if (!res.ok) return failFrom(res, codeFor(res.status));
+    if (!res.ok) return failureResponse(res);
     return ok({ holiday: res.holiday }, 201);
   } catch (e) {
     return serverError(e, "Could not save the holiday.");
@@ -74,7 +63,7 @@ export async function PATCH(req: Request) {
   if (!parsed.success) return fail(400, "validation", "Invalid holiday fields.");
   try {
     const res = await updateHoliday(db, auth.user, id, parsed.data, clientIp(req));
-    if (!res.ok) return failFrom(res, codeFor(res.status));
+    if (!res.ok) return failureResponse(res);
     return ok({ holiday: res.holiday });
   } catch (e) {
     return serverError(e, "Could not update the holiday.");
@@ -88,7 +77,7 @@ export async function DELETE(req: Request) {
   if (!id) return fail(400, "validation", "id query param required.");
   try {
     const res = await deleteHoliday(db, auth.user, id, clientIp(req));
-    if (!res.ok) return failFrom(res, codeFor(res.status));
+    if (!res.ok) return failureResponse(res);
     return ok({ deleted: true });
   } catch (e) {
     return serverError(e, "Could not delete the holiday.");

@@ -1,86 +1,189 @@
-/* TaskHub service worker — minimal PWA support.
-   - Dev (localhost): does nothing, so HMR / login redirects are never touched.
-   - Precaches only static, non-auth-dependent assets (NOT "/").
-   - API / auth / login / SSE / non-GET: left entirely to the browser (network).
-   - Navigations: network-first; offline fallback only if cached shell is a
-     non-redirected response (prevents redirect loops).
-   - Static hashed assets: cache-first.
-   - Auto-updates: new SW activates immediately on deploy. */
-const CACHE_NAME = "taskhub-shell-v3";
-const SHELL = [
+/* TaskHub service worker — standards-based PWA updates & caching.
+   Generated at build time (scripts/generate-version.mjs). Do not hand-edit. */
+const BUILD_VERSION = "build-1794292235139";
+const CACHE_PREFIX = "taskhub";
+const CACHE_NAME = CACHE_PREFIX + "-" + BUILD_VERSION;
+const RUNTIME_NAV_CACHE = CACHE_PREFIX + "-nav-" + BUILD_VERSION;
+
+const PRECACHE_URLS = [
   "/manifest.webmanifest",
   "/icon-192.png?v=2",
   "/icon-512.png?v=2",
   "/icon-maskable-512.png?v=2",
+  "/apple-touch-icon.png?v=2",
 ];
-const IS_DEV = ["localhost", "127.0.0.1", "[::1]"].includes(self.location.hostname);
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL)).catch(() => {})
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .catch(() => {})
   );
-  self.skipWaiting();
+  // Do not skipWaiting here: the page controls activation (SKIP_WAITING message)
+  // so updates can be applied safely without interrupting active use.
+});
+
+self.addEventListener("message", (event) => {
+  if (event && event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
+    (async () => {
+      try {
+        const keys = await caches.keys();
+        await Promise.all(
+          keys.map((key) => {
+            if (key.startsWith(CACHE_PREFIX + "-") && key !== CACHE_NAME && key !== RUNTIME_NAV_CACHE) {
+              return caches.delete(key);
+            }
+            // Drop stale runtime nav caches from other builds.
+            if (key.startsWith(CACHE_PREFIX + "-nav-") && key !== RUNTIME_NAV_CACHE) {
+              return caches.delete(key);
+            }
+            return Promise.resolve();
+          })
+        );
+      } catch (_) {}
+      await self.clients.claim();
+    })()
   );
-  self.clients.claim();
 });
 
+function isStaticAsset(pathname) {
+  return (
+    pathname.startsWith("/_next/static/") ||
+    /\.(?:js|css|woff2?|ttf|otf|eot|png|jpe?g|gif|webp|avif|svg|ico)$/.test(pathname)
+  );
+}
+
+function isCacheFirstAsset(pathname) {
+  // Hashed build assets are immutable; other static files are safe to cache-first.
+  return (
+    pathname.startsWith("/_next/static/") ||
+    /\.(?:woff2?|ttf|otf|eot|png|jpe?g|gif|webp|avif|svg|ico)$/.test(pathname)
+  );
+}
+
 self.addEventListener("fetch", (event) => {
-  // Dev: never intercept anything.
-  if (IS_DEV) return;
-
   const req = event.request;
-  const url = new URL(req.url);
+  if (req.method !== "GET") return;
 
-  // Only handle same-origin requests.
+  let url;
+  try {
+    url = new URL(req.url);
+  } catch (_) {
+    return;
+  }
   if (url.origin !== self.location.origin) return;
 
-  // API, auth, login, SSE, and non-GET: let the browser hit the network directly.
+  // Never intercept API/auth/personalized data or SSE streams.
+  const accept = req.headers.get("accept") || "";
   if (
     url.pathname.startsWith("/api/") ||
-    url.pathname.startsWith("/auth") ||
     url.pathname.startsWith("/login") ||
-    (req.headers.get("accept") || "").includes("text/event-stream") ||
-    req.method !== "GET"
+    url.pathname.startsWith("/change-password") ||
+    url.pathname.startsWith("/forgot-password") ||
+    url.pathname.startsWith("/no-access") ||
+    accept.includes("text/event-stream")
   ) {
     return;
   }
 
-  // Navigation: network-first. Offline fallback only to a non-redirected cached page.
+  // Service worker script & version: always go to network so updates are detected.
+  if (url.pathname === "/sw.js" || url.pathname === "/version.json") {
+    event.respondWith(fetch(req, { cache: "no-store" }).catch(() => caches.match(req)));
+    return;
+  }
+
+  // Manifest: network-first (revalidate) so icon/theme changes propagate.
+  if (url.pathname === "/manifest.webmanifest") {
+    event.respondWith(
+      (async () => {
+        try {
+          const res = await fetch(req);
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE_NAME).then((c) => c.put(req, copy)).catch(() => {});
+          }
+          return res;
+        } catch (_) {
+          const cached = await caches.match(req);
+          if (cached) return cached;
+          throw _;
+        }
+      })()
+    );
+    return;
+  }
+
+  // Navigations (HTML): Network First. Cache successful responses for offline fallback.
   if (req.mode === "navigate") {
     event.respondWith(
-      fetch(req).catch(async () => {
-        const cached = await caches.match("/");
-        return cached && !cached.redirected ? cached : Response.error();
-      })
+      (async () => {
+        try {
+          const res = await fetch(req);
+          if (res && res.ok && res.type === "basic") {
+            const copy = res.clone();
+            caches.open(RUNTIME_NAV_CACHE).then((c) => c.put(req, copy)).catch(() => {});
+          }
+          return res;
+        } catch (_) {
+          const cached = await caches.match(req);
+          if (cached) return cached;
+          const fallback = await caches.match("/login");
+          if (fallback) return fallback;
+          return Response.error();
+        }
+      })()
     );
     return;
   }
 
-  // Static assets: cache-first.
-  if (
-    url.pathname.startsWith("/_next/static/") ||
-    /\.(png|svg|ico|woff2?)$/.test(url.pathname)
-  ) {
+  // Hashed/static assets: Cache First.
+  if (isCacheFirstAsset(url.pathname)) {
     event.respondWith(
-      caches.match(req).then(
-        (cached) =>
-          cached ||
-          fetch(req).then((res) => {
-            if (res && res.ok && res.type === "basic") {
-              const copy = res.clone();
-              caches.open(CACHE_NAME).then((c) => c.put(req, copy)).catch(() => {});
-            }
-            return res;
-          })
-      )
+      (async () => {
+        const cached = await caches.match(req);
+        if (cached) return cached;
+        try {
+          const res = await fetch(req);
+          if (res && res.ok && (res.type === "basic" || res.type === "cors")) {
+            const copy = res.clone();
+            caches.open(CACHE_NAME).then((c) => c.put(req, copy)).catch(() => {});
+          }
+          return res;
+        } catch (_) {
+          const fallback = await caches.match(req);
+          if (fallback) return fallback;
+          throw _;
+        }
+      })()
+    );
+    return;
+  }
+
+  // Other same-origin GETs (e.g. non-hashed public files): network-first with cache fallback.
+  if (isStaticAsset(url.pathname)) {
+    event.respondWith(
+      (async () => {
+        try {
+          const res = await fetch(req);
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE_NAME).then((c) => c.put(req, copy)).catch(() => {});
+          }
+          return res;
+        } catch (_) {
+          const cached = await caches.match(req);
+          if (cached) return cached;
+          throw _;
+        }
+      })()
     );
   }
-  // Everything else: default browser behavior.
+  // Everything else: default browser/network behavior.
 });

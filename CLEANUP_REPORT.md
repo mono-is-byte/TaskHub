@@ -91,3 +91,43 @@ Remaining risks / follow-ups:
   build. Deploying is the owner's step (no `git`/Vercel CLI in this environment).
 - Slow-load / realtime status-refresh work is paused by the owner — do not resume it
   without a new request.
+
+## Cleanup & optimization pass (2026-11-10)
+
+A second conservative pass over the whole tree (dead code, duplication, unused
+imports/exports, CSS, assets, dependencies, docs). Same rule as before: only items
+proven unused by a repo-wide scan were removed; functionality, UI, Bangla strings,
+schemas, migrations, env files and documented scripts were left untouched.
+
+### Removed
+
+| # | Item | Kind | Evidence | Decision |
+|---|------|------|----------|----------|
+| 1 | Unused imports/vars: `isWeekendDay` (calendar), `removeTask` (board), `memberLabel` (settings/table), `filterVisibleNotes`/`notesAsLines` (table), `audit`/`createSession` (login route), `TASK_ROW_INCLUDE`/`stripHiddenFields` (timer route), `audit` (users route), `typeAId` (lookups test), `listTasks` (projects test) | dead code | `tsc --noEmit --noUnusedLocals --noUnusedParameters` flagged each; 0 remaining uses | **Removed** |
+| 2 | `TableProps` empty interface (`table/page.tsx`) | dead type | 0 references | **Removed** |
+| 3 | `IconPanelLeft`, `IconMenu` (`components/icons.tsx`) | unused icons | 0 imports/uses repo-wide | **Removed** (with their stale section comment) |
+| 4 | `removeTaskRefetch()` wrapper (`board/page.tsx`) | dead indirection | only called once, immediately replaced by `refreshTasks(projectId)` | **Inlined** |
+| 5 | `const e = entryFor(...)` + `void e;` (`taskStore.ts`) | dead code | value never read | **Removed** |
+| 6 | Exported-but-internal `TASK_ROW_INCLUDE` (`lib/tasks.ts`) and `removeTask` (`lib/taskStore.ts`) | API surface | only used inside their own module | **Un-exported** (not deleted) |
+| 7 | `.glass-pane` + `.glass-pane::before` rules, `.popover` selector (`globals.css`) | dead CSS | 0 class uses in `src/`/`public/`; fallback media-query references cleaned too | **Removed** |
+| 8 | Duplicate `failFrom`/`codeFor` helpers (`api/holidays`, `api/working-days`) | duplicated code | byte-identical copies | **Extracted** to `failureResponse()` in `lib/api.ts` |
+| 9 | Duplicate local `canTouchKind` (PATCH + DELETE in one comments route) | duplicated code | identical copies | **Extracted** to one module-level helper (same file) |
+| 10 | Duplicate `initials()` (board) vs `Avatar.tsx` | duplicated code | same logic, two copies | **Extracted** to `personInitials()` in `lib/memberLabel.ts`; both call it |
+
+### Kept (investigated, intentional)
+
+| Item | Why kept |
+|------|----------|
+| `PUT` in `api/auth/forgot/route.ts` | Part of the reset-link flow (token → new password) even though no page currently calls it. Not dead: removing it would break emailed reset links. |
+| `public/logo/taskhub-name.svg` | Brand asset (name lockup); referenced by the design docs, not by code. |
+| `sharp` | Used by `scripts/gen-pwa-icons.js`; arrives transitively via Next.js, so it is not declared in `package.json`. Left as-is (adding it would be a dependency change, not a cleanup). |
+| `scripts/*` (`crawl-check`, `import-check`, `sse-check`, `_apply-migration`, `remove-customer-impact-option`, `gen-pwa-icons`, `repair-designations`, `pretest`) | Documented diagnostics/maintenance entry points in README / PROJECT-SUMMARY / PLAN / CHANGELOG. |
+| `console.error` sites and the gated `console.log` in forgot-password | Error boundaries / unhandled-route logging / intentional debug opt-in. |
+| All npm dependencies | Repo-wide import scan found at least one real use for every declared dependency; nothing removed. |
+
+### Verification
+
+- `npx tsc --noEmit --noUnusedLocals --noUnusedParameters` — clean.
+- `npm test` — **256/256 passing** (19 files).
+- `npm run build` — green.
+- Docs updated: this report, `README.md` and `PROJECT-SUMMARY.md` script listings.

@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { api } from "@/lib/client";
 import { useProject } from "@/hooks/useProject";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import { memberLabel, userOptionLabel } from "@/lib/memberLabel";
+import { userOptionLabel } from "@/lib/memberLabel";
 import { CLEAR_ISSUE_TYPE } from "@/lib/lookups";
 import { IconTrash, IconX } from "@/components/icons";
 

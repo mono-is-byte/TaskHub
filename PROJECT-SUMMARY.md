@@ -52,6 +52,8 @@ Task-Tracker/
 │   ├── migrate-turso.mjs          # replays migrations against remote libSQL/Turso
 │   ├── copy-local-to-turso.mjs    # copy local dev.db data into Turso
 │   ├── create-admin.ts            # create/repair the fixed super-admin
+│   ├── repair-designations.ts     # one-time pass: align stale designations with held roles
+│   ├── gen-pwa-icons.js           # rasterize the brand icon into the PWA PNG sizes
 │   ├── crawl-check.mjs            # HTTP crawl smoke check
 │   ├── import-check.mjs, sse-check.mjs, _apply-migration.mjs, remove-customer-impact-option.mjs
 ├── src/

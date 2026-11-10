@@ -87,7 +87,7 @@ export function serializeTask<T extends Record<string, unknown>>(prefix: string,
  * server response, and a bare transaction row (no `status`/`priority`/`key`)
  * crashed the table's row renderer and left stale status names after edits.
  */
-export const TASK_ROW_INCLUDE = {
+const TASK_ROW_INCLUDE = {
   status: true, priority: true, type: true,
   assignee: { select: { id: true, name: true, username: true, avatarUrl: true } },
   // PHASE 4: current "assigned by" snapshot. `deletedAt` lets the UI mark a

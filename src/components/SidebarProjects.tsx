@@ -57,6 +57,22 @@ export default function SidebarProjects({ projects, canCreate }: { projects: Sid
   const [completedOpen, setCompletedOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const activeItemRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function onListScroll() {
+    const el = listRef.current;
+    if (!el) return;
+    el.dataset.scrolling = "1";
+    if (scrollTimer.current) clearTimeout(scrollTimer.current);
+    scrollTimer.current = setTimeout(() => {
+      delete el.dataset.scrolling;
+    }, 700);
+  }
+
+  useEffect(() => () => {
+    if (scrollTimer.current) clearTimeout(scrollTimer.current);
+  }, []);
 
   // Scroll the active workspace into view within the scrollable list (not the page).
   useEffect(() => {
@@ -358,7 +374,7 @@ export default function SidebarProjects({ projects, canCreate }: { projects: Sid
               </div>
             </div>
           )}
-          <div className="sb-workspace-list">
+          <div ref={listRef} className="sb-workspace-list" onScroll={onListScroll}>
             {active.map(item)}
           </div>
           {active.length === 0 && completed.length === 0 && (

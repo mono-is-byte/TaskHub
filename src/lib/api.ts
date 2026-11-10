@@ -11,6 +11,19 @@ export function fail(status: number, code: string, message: string, details?: un
   return Response.json({ error: { code, message, details } }, { status });
 }
 
+/** Default error code for a domain failure status (used by `failureResponse`). */
+function failureCode(status: number): string {
+  if (status === 403) return "forbidden";
+  if (status === 404) return "not_found";
+  if (status === 409) return "conflict";
+  return "validation";
+}
+
+/** Turn a domain failure ({ status, error }) into the matching JSON error response. */
+export function failureResponse(res: { status: number; error: string }): Response {
+  return fail(res.status, failureCode(res.status), res.error);
+}
+
 /**
  * Turn an unexpected route failure (database/schema mismatch, connection loss,
  * …) into a clean JSON 500. Without this, such a failure produced an EMPTY 500

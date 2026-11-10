@@ -31,6 +31,15 @@ function tidy(s: string): string {
 }
 
 /**
+ * Up-to-two-letter initials for avatars and compact chips. Falls back to "?"
+ * for a blank name, so a rendered chip never collapses to nothing.
+ */
+export function personInitials(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  return (words.slice(0, 2).map((w) => w[0] ?? "").join("") || "?").toUpperCase();
+}
+
+/**
  * One display entry per distinct label part: the designation when the user has
  * one, otherwise their project role names (de-duplicated). Suffixes like
  * "(inactive)" are NOT added here — callers that render pickers should use

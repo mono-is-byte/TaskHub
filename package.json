@@ -6,7 +6,9 @@
   "scripts": {
     "test": "vitest run",
     "dev": "next dev",
+    "predev": "node scripts/generate-version.mjs",
     "build": "next build",
+    "prebuild": "node scripts/generate-version.mjs",
     "start": "next start",
     "postinstall": "prisma generate",
     "pretest": "node scripts/pretest.mjs",

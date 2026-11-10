@@ -8,8 +8,8 @@ import { useTicker } from "@/hooks/useTicker";
 import { useTasks, patchTask, createTask, refreshTasks, type TaskRow } from "@/lib/taskStore";
 import { fmtDur } from "@/lib/timerFormat";
 import { liveStageTimes } from "@/lib/stageTime";
-import { memberLabel, userOptionLabel } from "@/lib/memberLabel";
-import { buildTaskNotes, filterVisibleNotes, noteText, notesAsLines } from "@/lib/notes";
+import { userOptionLabel } from "@/lib/memberLabel";
+import { buildTaskNotes, noteText } from "@/lib/notes";
 import Avatar from "@/components/Avatar";
 import TaskDrawer from "@/components/TaskDrawer";
 import TaskMenu from "@/components/TaskMenu";
@@ -437,8 +437,6 @@ function CustomFieldCell({
       return <TextCell value={value == null ? "" : String(value)} onCommit={onCommit} col={col} multiline={fieldType === "longtext"} />;
   }
 }
-
-interface TableProps { /* none — reads params */ }
 
 export default function TablePage() {
   const params = useParams<{ id: string }>();

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { fail, ok, readJson, clientIp } from "@/lib/api";
-import { audit, createSession, login, sessionCookieHeader, themeCookieHeader } from "@/lib/auth";
+import { login, sessionCookieHeader, themeCookieHeader } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 const Body = z.object({

@@ -7,7 +7,7 @@
    utilities (bg-surface, border-line, text-muted, bg-accent …) so themed
    components read from one place instead of repeating dark: variants. */
 :root {
-  color-scheme: light;
+  color-scheme: light dark;
   --text: #0f172a;
   --accent: #4f46e5;
   --accent-strong: #4338ca;
@@ -32,7 +32,6 @@
   --glass-alpha-strong: 0.72;
   --glass-alpha-soft: 0.4;
   --glass-border: rgb(255 255 255 / 0.65);
-  --glass-edge: rgb(15 23 42 / 0.08);
   --glass-highlight: rgb(255 255 255 / 0.85);
   --glass-blur: 16px;
   --glass-saturate: 1.4;
@@ -51,6 +50,17 @@
   --hol-weekly: #fff2f2;
   --hol-holiday: #fbdada;
   --hol-exception: #fff2cc;
+}
+
+/* Base backgrounds follow system theme before the .dark class is applied,
+   reducing white/dark flashes during PWA startup (splash handoff). */
+html {
+  background-color: #f5f7fb;
+}
+@media (prefers-color-scheme: dark) {
+  html {
+    background-color: #020617;
+  }
 }
 
 .dark {
@@ -73,7 +83,6 @@
   --glass-alpha-strong: 0.2;
   --glass-alpha-soft: 0.08;
   --glass-border: rgb(148 163 184 / 0.22);
-  --glass-edge: rgb(2 6 23 / 0.6);
   --glass-highlight: rgb(226 232 240 / 0.16);
   --glass-shadow: 0 12px 34px -14px rgb(2 6 23 / 0.7);
   --glass-shadow-lg: 0 28px 70px -26px rgb(2 6 23 / 0.85);
@@ -126,7 +135,6 @@ body {
      .glass         base translucent pane (header bars, toolbars)
      .glass-soft    quieter tint for large backgrounds / nested strips
      .glass-strong  higher opacity for menus, dialogs and popovers
-     .glass-pane    the full treatment (tint + border + highlight + shadow)
    Layering: `backdrop-filter` blurs whatever is behind, the inner highlight
    imitates the light-catching bevel, and the outer shadow lifts the pane off
    the aurora canvas. */
@@ -148,31 +156,6 @@ body {
   backdrop-filter: blur(22px) saturate(var(--glass-saturate));
 }
 
-.glass-pane {
-  background: rgb(var(--glass-tint) / var(--glass-alpha));
-  border: 1px solid var(--glass-border);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  box-shadow: var(--glass-inner), var(--glass-shadow);
-}
-
-/* The specular sheen along the top edge — a 1px gradient border that sells the
-   "glass" read without an image. Sits above the backdrop, below content. */
-.glass-pane::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background: linear-gradient(
-    180deg,
-    var(--glass-highlight) 0%,
-    transparent 22%,
-    transparent 100%
-  );
-  opacity: 0.5;
-}
-
 /* Fallbacks ────────────────────────────────────────────────────────────────
    1) No backdrop-filter support → solid, fully opaque surfaces so text keeps
       its contrast instead of sitting on an un-blurred translucent tint.
@@ -180,26 +163,26 @@ body {
    The class list includes every themed component rule that reads the glass
    tokens, so the whole app flips together. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .glass, .glass-soft, .glass-strong, .glass-pane,
+  .glass, .glass-soft, .glass-strong,
   .tt-card, .tt-kpi, .tt-btn, .tt-btn:hover, .tt-input, .sb-toggle {
     background: var(--surface);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
-  .glass-pane, .tt-card, .tt-kpi, .tt-btn, .tt-input, .sb-toggle { border-color: var(--line); }
-  .glass-pane::before, .tt-card::before { display: none; }
+  .tt-card, .tt-kpi, .tt-btn, .tt-input, .sb-toggle { border-color: var(--line); }
+  .tt-card::before { display: none; }
   body { background-image: none; }
 }
 
 @media (prefers-reduced-transparency: reduce) {
-  .glass, .glass-soft, .glass-strong, .glass-pane,
+  .glass, .glass-soft, .glass-strong,
   .tt-card, .tt-kpi, .tt-btn, .tt-btn:hover, .tt-input, .sb-toggle {
     background: var(--surface);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
-  .glass-pane, .tt-card, .tt-kpi, .tt-btn, .tt-input, .sb-toggle { border-color: var(--line); }
-  .glass-pane::before, .tt-card::before { display: none; }
+  .tt-card, .tt-kpi, .tt-btn, .tt-input, .sb-toggle { border-color: var(--line); }
+  .tt-card::before { display: none; }
   body { background-image: none; }
 }
 
@@ -256,7 +239,7 @@ body {
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   box-shadow: var(--glass-inner), var(--glass-shadow);
 }
-/* Top-edge sheen shared with .glass-pane. */
+/* Top-edge sheen shared with the glass surfaces. */
 .tt-card::before {
   content: "";
   position: absolute;
@@ -567,19 +550,38 @@ body {
   html[data-sb="collapsed"] .sb-user .relative > span { position: absolute !important; top: 0.125rem !important; right: 0.125rem !important; }
 }
 
-/* Workspaces list: show 5 items at once, scroll if more. Collapsed rail unaffected. */
-html:not([data-sb="collapsed"]) .sb-workspace-list {
+/* Workspaces list: show 5 items at once and scroll when there are more — the
+   same rule applies in the mobile drawer and in BOTH desktop states, so the
+   collapsed icon rail scrolls exactly like the expanded sidebar. */
+.sb-workspace-list {
   max-height: calc(5 * 1.625rem + 4 * 0.25rem);
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-gutter: stable;
 }
-/* Slim scrollbar for the workspaces list (light + dark). */
-.sb-workspace-list::-webkit-scrollbar { width: 6px; }
+/* Workspaces-only scrollbar: hidden at idle, appears on hover/focus or while scrolling.
+   Scoped to .sb-workspace-list so no other scrollbars are affected. */
+.sb-workspace-list {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: transparent transparent;
+}
+.sb-workspace-list:hover,
+.sb-workspace-list:focus-within,
+.sb-workspace-list[data-scrolling="1"] {
+  scrollbar-color: color-mix(in srgb, var(--muted) 28%, transparent) transparent;
+}
+.sb-workspace-list::-webkit-scrollbar { width: 3px; height: 3px; }
 .sb-workspace-list::-webkit-scrollbar-track { background: transparent; }
-.sb-workspace-list::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--muted) 40%, transparent); border-radius: 3px; }
-.sb-workspace-list::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--muted) 60%, transparent); }
-.sb-workspace-list { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--muted) 40%, transparent) transparent; }
+.sb-workspace-list::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 9999px;
+  transition: background-color 0.25s ease;
+}
+.sb-workspace-list:hover::-webkit-scrollbar-thumb,
+.sb-workspace-list:focus-within::-webkit-scrollbar-thumb,
+.sb-workspace-list[data-scrolling="1"]::-webkit-scrollbar-thumb {
+  background-color: color-mix(in srgb, var(--muted) 28%, transparent);
+}
 
 @media (prefers-reduced-motion: reduce) {
   .sb-toggle, .sb-aside { transition: none; }
@@ -590,7 +592,7 @@ html:not([data-sb="collapsed"]) .sb-workspace-list {
 /* Dropdown readability (Phase 11.4) */
 select, option, optgroup { color: var(--text); background-color: var(--surface); }
 select:focus, option:focus { outline: 2px solid var(--accent); }
-.popover, [role="listbox"], [role="menu"] { background-color: var(--surface-popover); color: var(--text); border: 1px solid var(--line); }
+[role="listbox"], [role="menu"] { background-color: var(--surface-popover); color: var(--text); border: 1px solid var(--line); }
 
 .row-selected { box-shadow: inset 3px 0 0 0 var(--row-selected-bar); }
 .row-selected:hover { background-color: color-mix(in srgb, var(--accent) 16%, transparent) !important; }

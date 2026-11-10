@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { fail, ok, readJson, requireAdmin, requireUser, clientIp } from "@/lib/api";
-import { audit, createUser } from "@/lib/auth";
+import { createUser } from "@/lib/auth";
 import { GENDERS } from "@/lib/accountRules";
 import { db } from "@/lib/db";
 import { mergeRoles } from "@/lib/permissions";

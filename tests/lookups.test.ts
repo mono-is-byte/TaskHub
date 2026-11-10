@@ -17,7 +17,6 @@ const uniq = (p: string) => `${p}-${Date.now()}-${n++}`;
 let projectId = "";
 let statusId = "";
 let keepPriorityId = "";
-let typeAId = "";
 let serial = 1;
 /** The acting user the reassignment activity lines reference. */
 let actorId = "";
@@ -42,8 +41,7 @@ beforeAll(async () => {
   statusId = status.id;
   const kept = await createLookup(db, projectId, "priority", { name: "Medium", level: 3, color: "#888888" });
   if (kept.ok && kept.priority) keepPriorityId = kept.priority.id;
-  const typeA = await createLookup(db, projectId, "issuetype", { name: "Task", color: "#0000ff" });
-  if (typeA.ok && typeA.issueType) typeAId = typeA.issueType.id;
+  await createLookup(db, projectId, "issuetype", { name: "Task", color: "#0000ff" });
 });
 
 describe("lookup name / colour helpers", () => {
