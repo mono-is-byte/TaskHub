@@ -1,22 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { buildDashboardPdf } from "@/lib/pdf";
-import { IconDownload } from "@/components/icons";
+import { IconDownload, IconChevronRight } from "@/components/icons";
 import type { DashboardSummary } from "@/lib/dashboard";
-
-/**
- * Change request: the Dashboard downloads the entire page as PDF or Excel
- * (CSV is gone).
- *
- * PDF  — built client-side from the data the page already rendered, with the
- *        shared jspdf helpers (same pipeline as Reports and Calendar). Because
- *        it is data-driven it always contains every section, including the ones
- *        below the fold, and flows over as many A4 pages as needed.
- * Excel — the genuine .xlsx workbook comes from /api/dashboard/export, which
- *        re-validates the viewer's project scope server-side and returns one
- *        worksheet per dashboard section.
- */
 
 interface DashboardExportRow {
   key: string;
@@ -24,6 +12,8 @@ interface DashboardExportRow {
   status: string;
   priority: string;
   due: string;
+  workspace?: string;
+  assignee?: string;
 }
 
 interface DashboardExportActivity {
@@ -35,37 +25,68 @@ interface DashboardExportActivity {
 }
 
 interface Props {
-  /** Validated project id ("" = all projects) — used for the export URL. */
-  scopeId: string;
-  /** Short file-name scope: a project key or "all". */
+  /** Current dashboard filter query string (without leading ?) for server export. */
+  queryString: string;
+  /** Short file-name scope. */
   scopeKey: string;
-  /** Human label shown in the PDF header. */
-  scopeLabel: string;
+  /** Human labels for report header. */
+  workspaceLabel: string;
+  periodLabel: string;
+  userLabel: string;
   summary: DashboardSummary;
   assigned: DashboardExportRow[];
   qaQueue: DashboardExportRow[];
   overdue: DashboardExportRow[];
   recent: DashboardExportActivity[];
-  projects: { key: string; name: string }[];
+  taskDetails: DashboardExportRow[];
 }
 
 export default function DashboardExport(props: Props) {
   const [busy, setBusy] = useState<"" | "pdf" | "xlsx">("");
   const [err, setErr] = useState("");
+  const [open, setOpen] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (!open) return;
+    const update = () => {
+      const r = btnRef.current?.getBoundingClientRect();
+      if (r) setPos({ top: r.bottom + 4, left: r.left });
+    };
+    update();
+    const onDoc = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (btnRef.current?.contains(t) || panelRef.current?.contains(t)) return;
+      setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
+  }, [open]);
 
   async function downloadPdf() {
     setErr("");
     setBusy("pdf");
+    setOpen(false);
     try {
       const doc = await buildDashboardPdf({
-        scopeLabel: props.scopeLabel,
+        workspaceLabel: props.workspaceLabel,
+        periodLabel: props.periodLabel,
+        userLabel: props.userLabel,
         generatedAt: new Date(),
         summary: props.summary,
         assigned: props.assigned,
         qaQueue: props.qaQueue,
         overdue: props.overdue,
         recent: props.recent,
-        projects: props.projects,
+        taskDetails: props.taskDetails,
       });
       doc.save(`dashboard-${props.scopeKey}.pdf`);
     } catch {
@@ -78,11 +99,11 @@ export default function DashboardExport(props: Props) {
   async function downloadXlsx() {
     setErr("");
     setBusy("xlsx");
+    setOpen(false);
     let objectUrl = "";
     try {
-      const res = await fetch(
-        `/api/dashboard/export?format=xlsx${props.scopeId ? `&project=${encodeURIComponent(props.scopeId)}` : ""}`,
-      );
+      const qs = props.queryString ? `?${props.queryString}` : "";
+      const res = await fetch(`/api/dashboard/export${qs}`);
       if (!res.ok) throw new Error("export failed");
       const blob = await res.blob();
       objectUrl = URL.createObjectURL(blob);
@@ -95,38 +116,42 @@ export default function DashboardExport(props: Props) {
     } catch {
       setErr("Excel export failed — please try again.");
     } finally {
-      // Clean up the object URL once the download has started.
       if (objectUrl) setTimeout(() => URL.revokeObjectURL(objectUrl), 10_000);
       setBusy("");
     }
   }
 
   return (
-    <span className="inline-flex flex-wrap items-center gap-2">
+    <span className="relative inline-flex flex-wrap items-center gap-2">
       <button
+        ref={btnRef}
         type="button"
         className="tt-btn"
-        onClick={() => void downloadPdf()}
+        onClick={() => setOpen((v) => !v)}
         disabled={busy !== ""}
-        title="Download the entire dashboard (all sections, multiple pages) as a PDF"
+        title="Download dashboard report"
       >
         <IconDownload className="h-3.5 w-3.5" />
-        {busy === "pdf" ? "Preparing PDF…" : "Download PDF"}
+        {busy === "pdf" ? "Preparing PDF…" : busy === "xlsx" ? "Preparing Excel…" : "Download"}
+        <IconChevronRight className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-90" : ""}`} />
       </button>
-      <button
-        type="button"
-        className="tt-btn"
-        onClick={() => void downloadXlsx()}
-        disabled={busy !== ""}
-        title="Download the dashboard's data as a real Excel workbook (one sheet per section)"
-      >
-        <IconDownload className="h-3.5 w-3.5" />
-        {busy === "xlsx" ? "Preparing Excel…" : "Download Excel"}
-      </button>
+      {open && createPortal(
+        <div
+          ref={panelRef}
+          className="glass-strong fixed z-[60] w-40 rounded-md border border-line p-1 text-xs shadow-lg"
+          style={{ top: pos.top, left: Math.max(8, Math.min(pos.left, window.innerWidth - 170)) }}
+        >
+          <button type="button" className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left hover:bg-line" onClick={() => void downloadPdf()}>
+            Download PDF
+          </button>
+          <button type="button" className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left hover:bg-line" onClick={() => void downloadXlsx()}>
+            Download Excel
+          </button>
+        </div>,
+        document.body,
+      )}
       {err && (
-        <span className="text-xs text-red-600 dark:text-red-400" role="alert">
-          {err}
-        </span>
+        <span className="text-xs text-red-600 dark:text-red-400" role="alert">{err}</span>
       )}
     </span>
   );

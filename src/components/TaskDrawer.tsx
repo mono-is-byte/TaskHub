@@ -391,13 +391,15 @@ export default function TaskDrawer({ projectId, taskId, lookups, onClose, onChan
                   <input type="date" defaultValue={fmtDate(t.startDate as string | null)} key={"s" + String(t.updatedAt)}
                     disabled={rule("startDate") !== "editable"}
                     onChange={(e) => patch({ startDate: e.target.value || null }, "start")}
-                    className="tt-input mt-1" />
+                    onClick={(e) => { try { (e.currentTarget as HTMLInputElement & { showPicker?: () => void }).showPicker?.(); } catch {} }}
+                    className="tt-input mt-1 cursor-pointer" />
                 </label>
                 <label className="block text-xs text-muted">End date
                   <input type="date" defaultValue={fmtDate(t.endDate as string | null)} key={"e" + String(t.updatedAt)}
                     disabled={rule("endDate") !== "editable"}
                     onChange={(e) => patch({ endDate: e.target.value || null }, "end")}
-                    className="tt-input mt-1" />
+                    onClick={(e) => { try { (e.currentTarget as HTMLInputElement & { showPicker?: () => void }).showPicker?.(); } catch {} }}
+                    className="tt-input mt-1 cursor-pointer" />
                 </label>
               </div>
             </section>

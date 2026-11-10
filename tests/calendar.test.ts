@@ -3,6 +3,7 @@ import { makeTestClient } from "../src/lib/db";
 import { hashPassword } from "../src/lib/password";
 import { dayKey, isWeekendDay, monthGrid, weekGrid, occursOn, widenRange, fetchCalendarData } from "../src/lib/calendar";
 import { dashboardSummary } from "../src/lib/dashboard";
+import type { ResolvedDashboardFilters } from "../src/lib/dashboardFilters";
 
 const TEST_URL = "file:./tests/test-calendar.db";
 const db = makeTestClient(TEST_URL);
@@ -229,8 +230,27 @@ describe("holiday ranges + working-day exceptions in the calendar feed", () => {
 });
 
 describe("dashboardSummary", () => {
+  const baseFilters = (overrides: Partial<ResolvedDashboardFilters>): ResolvedDashboardFilters => ({
+    projectIds: [fx.A, fx.B],
+    projects: [{ id: fx.A, key: "CA", name: "proj-CA", isCompleted: false }],
+    userIds: [],
+    includeUnassigned: false,
+    hasUserFilter: false,
+    periods: null, // all periods (no restriction)
+    periodRange: null,
+    selectedMonths: null,
+    selectedYears: null,
+    workspaceLabel: "All Workspaces",
+    periodLabel: "All periods",
+    userLabel: "All users",
+    viewerId: fx.users.member,
+    isAdmin: false,
+    isPmScoped: false,
+    ...overrides,
+  });
+
   it("aggregates totals, overdue, per-status/priority/member", async () => {
-    const s = await dashboardSummary(db, fx.users.member, false);
+    const s = await dashboardSummary(db, fx.users.member, false, baseFilters({}));
     // projectCount excludes the hidden project; its tasks still count
     expect(s.projectCount).toBe(1);
     //5 tasks total: a1-a4 in A + a5 in hidden B; a3 done; a1 overdue (a3 is done → not overdue)
@@ -247,7 +267,14 @@ describe("dashboardSummary", () => {
   });
 
   it("superadmin sees all projects", async () => {
-    const s = await dashboardSummary(db, fx.users.member, true);
+    const s = await dashboardSummary(db, fx.users.member, true, baseFilters({
+      projectIds: [fx.A, fx.B, fx.C],
+      projects: [
+        { id: fx.A, key: "CA", name: "proj-CA", isCompleted: false },
+        { id: fx.C, key: "CC", name: "proj-CC", isCompleted: false },
+      ],
+      isAdmin: true,
+    }));
     // accumulation-safe: this run contributes3 visible +1 hidden project and6 tasks
     expect(s.projectCount).toBeGreaterThanOrEqual(2);
     expect(s.totals.all).toBeGreaterThanOrEqual(6);

@@ -355,31 +355,67 @@ export async function buildCalendarPdf(input: CalendarPdfInput): Promise<jsPDF> 
 /* ── Dashboard PDF ────────────────────────────────────────────────────── */
 
 export interface DashboardPdfInput {
-  /** "All projects" or "LVM · Letter View Management". */
-  scopeLabel: string;
+  workspaceLabel: string;
+  periodLabel: string;
+  userLabel: string;
   generatedAt: Date;
   summary: DashboardSummary;
-  assigned: { key: string; title: string; status: string; priority: string }[];
-  qaQueue: { key: string; title: string; status: string; priority: string }[];
-  overdue: { key: string; title: string; due: string }[];
+  assigned: { key: string; title: string; status: string; priority: string; due?: string }[];
+  qaQueue: { key: string; title: string; status: string; priority: string; due?: string }[];
+  overdue: { key: string; title: string; status?: string; priority?: string; due: string }[];
   recent: { key: string; title: string; action: string; actor: string; when: string }[];
-  projects: { key: string; name: string }[];
+  taskDetails: { key: string; title: string; status: string; priority: string; due?: string; workspace?: string; assignee?: string }[];
 }
 
-/**
- * Change request: "Download the entire dashboard as PDF" — built from the same
- * data the page renders (KPI numbers, section lists and chart datasets), so
- * everything below the fold is included by construction and every block flows
- * across as many A4 pages as it needs (the shared ctx handles page breaks).
- */
+async function tryLoadLogoDataUrl(): Promise<string | null> {
+  if (typeof window === "undefined") return null;
+  try {
+    // Prefer the existing transparent SVG logo (vector source); fall back to PNG.
+    const urls = ["/logo/taskhub-icon.svg", "/icon-192.png?v=2"];
+    for (const url of urls) {
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const blob = await res.blob();
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(new Error("read failed"));
+        reader.readAsDataURL(blob);
+      });
+      return dataUrl;
+    }
+  } catch { /* ignore */ }
+  return null;
+}
+
 export async function buildDashboardPdf(input: DashboardPdfInput): Promise<jsPDF> {
   const doc = await openPdf("portrait");
   const c = ctx(doc, 16);
 
-  text(c, "TaskHub", { size: 8, color: "#94a3b8", gap: 1 });
-  text(c, "Dashboard", { size: 16, bold: true, gap: 0.5 });
-  text(c, input.scopeLabel, { size: 10, color: "#64748b", gap: 0.5 });
-  text(c, `Generated ${input.generatedAt.toLocaleString()}`, { size: 8, color: "#94a3b8" });
+  // Header: logo + app name + report title + metadata (filters)
+  const logo = await tryLoadLogoDataUrl();
+  let titleX = c.margin;
+  if (logo) {
+    try {
+      const fmt = logo.startsWith("data:image/png") ? "PNG" : "JPEG"; // svg data URLs may not render in all jsPDF builds; ignore failure
+      if (fmt === "PNG") {
+        doc.addImage(logo, "PNG", c.margin, c.y - 2, 10, 10);
+        titleX = c.margin + 13;
+      }
+    } catch { /* fall back to text-only header */ }
+  }
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(15);
+  setTextColor(c);
+  doc.text("TaskHub", titleX, c.y + 4);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  doc.text("Dashboard Report", titleX, c.y + 10);
+  c.y += 16;
+  text(c, `Generated: ${input.generatedAt.toLocaleString()}`, { size: 8, color: "#64748b" });
+  text(c, `Workspaces: ${input.workspaceLabel}`, { size: 8, color: "#64748b" });
+  text(c, `Reporting period: ${input.periodLabel}`, { size: 8, color: "#64748b" });
+  text(c, `Users: ${input.userLabel}`, { size: 8, color: "#64748b" });
 
   const s = input.summary;
   const half = pageWidth(c) / 2;
@@ -397,7 +433,7 @@ export async function buildDashboardPdf(input: DashboardPdfInput): Promise<jsPDF
     }
   };
 
-  section(c, "Key numbers");
+  section(c, "Dashboard summary");
   pairs([
     ["Total tasks", String(s.totals.all)],
     ["Completed", `${s.totals.done} (${s.completionPct}%)`],
@@ -407,7 +443,7 @@ export async function buildDashboardPdf(input: DashboardPdfInput): Promise<jsPDF
     ["Open tasks", String(s.totals.open)],
     ["My open tasks", String(s.myOpen)],
     ["My overdue tasks", String(s.myOverdue)],
-    ["Projects in view", String(s.projectCount)],
+    ["Workspaces in view", String(s.projectCount)],
   ]);
 
   section(c, "Completion & timers");
@@ -421,75 +457,102 @@ export async function buildDashboardPdf(input: DashboardPdfInput): Promise<jsPDF
   const maxOf = (xs: number[]) => Math.max(1, ...xs);
 
   if (s.byStatus.length) {
-    section(c, "Tasks by status");
+    section(c, "Task status statistics");
     const max = maxOf(s.byStatus.map((x) => x.count));
     for (const x of s.byStatus) barRow(c, x.name, x.count, max, x.color);
   }
 
   if (s.byPriority.length) {
-    section(c, "Tasks by priority");
+    section(c, "Priority breakdown");
     const max = maxOf(s.byPriority.map((x) => x.count));
     for (const x of s.byPriority) barRow(c, x.name, x.count, max, x.color);
   }
 
-  if (s.perMember.length) {
-    section(c, "Open tasks per member");
-    const max = maxOf(s.perMember.map((x) => x.count));
-    for (const x of s.perMember) barRow(c, x.name, x.count, max, "#3b82f6");
-  }
-
-  const taskCols = [
-    { header: "Key", w: 26 },
-    { header: "Title", w: pageWidth(c) - 26 - 30 - 26 },
-    { header: "Status", w: 30 },
-    { header: "Priority", w: 26 },
-  ];
-  const taskRow = (t: { key: string; title: string; status: string; priority: string }) =>
-    [t.key, t.title, t.status, t.priority];
-
-  section(c, `Assigned to me (${input.assigned.length})`);
-  if (input.assigned.length === 0) text(c, "Nothing assigned to you right now.", { size: 8, color: "#64748b" });
-  else table(c, taskCols, input.assigned.map(taskRow));
-
-  section(c, `Waiting for my testing (${input.qaQueue.length})`);
-  if (input.qaQueue.length === 0) text(c, "No task is waiting for your testing.", { size: 8, color: "#64748b" });
-  else table(c, taskCols, input.qaQueue.map(taskRow));
-
-  section(c, `Overdue (${input.overdue.length})`);
-  if (input.overdue.length === 0) text(c, "Nothing overdue — nice.", { size: 8, color: "#64748b" });
-  else {
+  if (s.byWorkspace.length) {
+    section(c, "Workspace-wise summary");
     table(
       c,
-      [{ header: "Key", w: 30 }, { header: "Title", w: pageWidth(c) - 30 - 26 }, { header: "Due", w: 26 }],
-      input.overdue.map((t) => [t.key, t.title, t.due]),
+      [
+        { header: "Workspace", w: pageWidth(c) - 56 },
+        { header: "Total", w: 14, align: "right" },
+        { header: "Done", w: 14, align: "right" },
+        { header: "Open", w: 14, align: "right" },
+        { header: "Overdue", w: 14, align: "right" },
+      ],
+      s.byWorkspace.map((w) => [`${w.key} · ${w.name}`, String(w.total), String(w.done), String(w.open), String(w.overdue)]),
     );
   }
 
+  if (s.byUser.length) {
+    section(c, "User-wise task summary");
+    table(
+      c,
+      [
+        { header: "User", w: pageWidth(c) - 56 },
+        { header: "Total", w: 14, align: "right" },
+        { header: "Done", w: 14, align: "right" },
+        { header: "Open", w: 14, align: "right" },
+        { header: "Overdue", w: 14, align: "right" },
+      ],
+      s.byUser.map((u) => [u.name, String(u.total), String(u.done), String(u.open), String(u.overdue)]),
+    );
+  }
+
+  const taskCols = [
+    { header: "Key", w: 24 },
+    { header: "Title", w: pageWidth(c) - 24 - 26 - 22 - 22 },
+    { header: "Status", w: 26 },
+    { header: "Priority", w: 22 },
+    { header: "Due", w: 22 },
+  ];
+  const trow = (t: { key: string; title: string; status?: string; priority?: string; due?: string }) =>
+    [t.key, t.title, t.status ?? "—", t.priority ?? "—", t.due ?? "—"];
+
+  section(c, `Assigned tasks (${input.assigned.length})`);
+  if (input.assigned.length === 0) text(c, "No matching assigned tasks.", { size: 8, color: "#64748b" });
+  else table(c, taskCols, input.assigned.map(trow));
+
+  section(c, `Waiting for testing (${input.qaQueue.length})`);
+  if (input.qaQueue.length === 0) text(c, "No matching tasks waiting for testing.", { size: 8, color: "#64748b" });
+  else table(c, taskCols, input.qaQueue.map(trow));
+
+  section(c, `Overdue task list (${input.overdue.length})`);
+  if (input.overdue.length === 0) text(c, "No matching overdue tasks.", { size: 8, color: "#64748b" });
+  else table(c, taskCols, input.overdue.map(trow));
+
   section(c, `Recently changed (${input.recent.length})`);
-  if (input.recent.length === 0) text(c, "No activity yet.", { size: 8, color: "#64748b" });
+  if (input.recent.length === 0) text(c, "No activity in the selected period.", { size: 8, color: "#64748b" });
   else {
     table(
       c,
       [
-        { header: "Key", w: 26 },
-        { header: "Task", w: pageWidth(c) - 26 - 28 - 30 - 26 },
+        { header: "Key", w: 24 },
+        { header: "Task", w: pageWidth(c) - 24 - 28 - 28 - 24 },
         { header: "Change", w: 28 },
-        { header: "By", w: 30 },
-        { header: "When", w: 26 },
+        { header: "By", w: 28 },
+        { header: "When", w: 24 },
       ],
       input.recent.map((a) => [a.key, a.title, a.action, a.actor, a.when]),
     );
   }
 
-  if (input.projects.length) {
-    section(c, `Projects (${input.projects.length})`);
+  if (input.taskDetails.length) {
+    section(c, `Relevant task details (${input.taskDetails.length})`);
     table(
       c,
-      [{ header: "Key", w: 30 }, { header: "Name", w: pageWidth(c) - 30 }],
-      input.projects.map((p) => [p.key, p.name]),
+      [
+        { header: "Key", w: 22 },
+        { header: "Workspace", w: 28 },
+        { header: "Title", w: pageWidth(c) - 22 - 28 - 22 - 20 - 18 - 20 },
+        { header: "Status", w: 22 },
+        { header: "Priority", w: 20 },
+        { header: "Assignee", w: 18 },
+        { header: "Due", w: 20 },
+      ],
+      input.taskDetails.slice(0, 500).map((t) => [t.key, t.workspace ?? "", t.title, t.status, t.priority, t.assignee ?? "", t.due ?? ""]),
     );
   }
 
-  footer(c, `TaskHub · Dashboard · ${input.generatedAt.toLocaleDateString()}`);
+  footer(c, `TaskHub · Dashboard Report · ${input.generatedAt.toLocaleDateString()}`);
   return doc;
 }

@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { db, taskKey } from "@/lib/db";
-import { listProjectsForUser, requireViewer } from "@/lib/server";
+import { requireViewer } from "@/lib/server";
 import { designationLabel } from "@/lib/designation";
 import { dashboardLists, dashboardSummary } from "@/lib/dashboard";
+import { getAvailableYears, parseDashboardFilters, resolveDashboardFilters } from "@/lib/dashboardFilters";
 import StatBar from "@/components/StatBar";
 import { MobileTopBar } from "@/components/SidebarToggle";
-import DashboardProjectFilter from "@/components/DashboardProjectFilter";
+import DashboardFilterBar from "@/components/DashboardFilterBar";
 import DashboardExport from "@/components/DashboardExport";
 import {
   IconAlarmClock, IconChart, IconCheckCircle, IconClipboardCheck, IconClock, IconHistory,
@@ -13,9 +14,9 @@ import {
 } from "@/components/icons";
 
 /**
- * Dashboard (home) — server-rendered from real task data only. The KPI cards
- * (Total / Completed / In progress / Pending / Overdue) all come from
- * `dashboardSummary`, so they always agree with the Board, Table and Calendar.
+ * Dashboard (home) — server-rendered from real task data only, driven by
+ * centralized combined filters (workspace / period / user) with server-side
+ * authorization and export consistency.
  */
 
 const TONE = {
@@ -83,35 +84,80 @@ function activityLabel(a: { action: string; field: string | null; after: string 
 
 export default async function MyWorkPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { user } = await requireViewer("/");
-  // Phase 2 (role = designation): the header badge shows the user's REAL role
-  // name resolved from the Role table — never a hard-coded "Team member".
   const roleLabel = await designationLabel(db, user);
   const sp = await searchParams;
-  const requestedProject = typeof sp.project === "string" ? sp.project : "";
-  // Hidden projects stay in My Work task queries (members keep their assignments);
-  // only the project LIST hides them (Hide/Unhide UI was removed in Phase 2).
-  const projects = await listProjectsForUser(user.id, user.isSuperAdmin);
-  // Change request: ONE combined project-wise filter (?project=<id>) scopes the
-  // whole dashboard to a single project. The id must belong to the viewer —
-  // anything else falls back to all projects.
-  const selected = projects.find((p) => p.id === requestedProject) ?? null;
-  const projectIds = selected ? [selected.id] : projects.map((p) => p.id);
 
-  // Change request (dashboard exports): the four lists come from the shared
-  // helper so the page, the PDF and the Excel workbook always agree.
+  // Centralized, server-validated filters (workspace + period + user)
+  const filterState = parseDashboardFilters(sp);
+  const resolved = await resolveDashboardFilters(db, { id: user.id, isSuperAdmin: user.isSuperAdmin }, filterState);
+
   const [lists, summary] = await Promise.all([
-    dashboardLists(db, user.id, projectIds),
-    dashboardSummary(db, user.id, user.isSuperAdmin, selected?.id),
+    dashboardLists(db, user.id, resolved),
+    dashboardSummary(db, user.id, user.isSuperAdmin, resolved),
   ]);
-  const { assigned, qaQueue, overdue, recent } = lists;
+  const { assigned, qaQueue, overdue, recent, taskDetails } = lists;
 
-  /** Plain-string snapshot of a task row for the export buttons. */
-  const lite = (t: (typeof assigned)[number]) => ({
+  // Options for filter UI (authorized)
+  const [accessibleProjects, availableYears] = await Promise.all([
+    (async () => { const { listProjectsForUser } = await import("@/lib/server"); return listProjectsForUser(user.id, user.isSuperAdmin, false, db); })(),
+    getAvailableYears(db),
+  ]);
+
+  // Authorized user options for filter: admin=all non-deleted; PM=users in managed projects; regular=self
+  const userOptions = await (async () => {
+    if (user.isSuperAdmin) {
+      const rows = await db.user.findMany({ where: { deletedAt: null }, select: { id: true, name: true }, orderBy: { name: "asc" } });
+      return rows;
+    }
+    // PM scope?
+    const memberships = await db.projectMember.findMany({ where: { userId: user.id }, include: { roles: { include: { role: true } } } });
+    const managed: string[] = [];
+    for (const m of memberships) {
+      for (const l of m.roles) {
+        try { if ((JSON.parse(l.role.permissions || "{}") as any).manage_members === true) { managed.push(m.projectId); break; } } catch {}
+      }
+    }
+    if (managed.length > 0) {
+      const mem = await db.projectMember.findMany({ where: { projectId: { in: [...new Set(managed)] } }, select: { userId: true }, distinct: ["userId"] });
+      const ids = [...new Set([...mem.map((m) => m.userId), user.id])];
+      return db.user.findMany({ where: { id: { in: ids }, deletedAt: null }, select: { id: true, name: true }, orderBy: { name: "asc" } });
+    }
+    return [{ id: user.id, name: user.name }];
+  })();
+
+  const canFilterUsers = user.isSuperAdmin || userOptions.length > 1 || resolved.isPmScoped;
+  const isRegularUser = !user.isSuperAdmin && !resolved.isPmScoped;
+
+  // Canonical query string for export (preserves current filters)
+  const qs = new URLSearchParams();
+  const appendAll = (k: string, v: string | string[] | undefined) => {
+    if (v == null) return; (Array.isArray(v) ? v : [v]).forEach((x) => qs.append(k, x));
+  };
+  appendAll("ws", sp.ws);
+  appendAll("month", sp.month);
+  appendAll("year", sp.year);
+  appendAll("period", sp.period); // legacy compat
+  appendAll("user", sp.user);
+  const queryString = qs.toString();
+
+  const lite = (t: any) => ({
     key: taskKey(t.project.key, t.serial),
     title: t.title,
     status: t.status.name,
     priority: t.priority.name,
     due: t.endDate ? new Date(t.endDate).toISOString().slice(0, 10) : "—",
+    workspace: `${t.project.key} · ${t.project.name}`,
+    assignee: t.assignee?.name ?? "",
+  });
+
+  const detailLite = (t: any) => ({
+    key: t.key,
+    title: t.title,
+    status: t.status,
+    priority: t.priority,
+    due: t.endDate ? new Date(t.endDate).toISOString().slice(0, 10) : "—",
+    workspace: `${t.projectKey} · ${t.projectName}`,
+    assignee: t.assigneeName ?? "",
   });
 
   function row(t: (typeof assigned)[number]) {
@@ -140,36 +186,36 @@ export default async function MyWorkPage({ searchParams }: { searchParams: Promi
             <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
           </div>
           <p className="text-sm text-muted">
-            Welcome back, {user.name} · {selected
-              ? selected.name
-              : `${summary.projectCount} project${summary.projectCount === 1 ? "" : "s"} in view`}
+            Welcome back, {user.name} · {summary.projectCount} workspace{summary.projectCount === 1 ? "" : "s"} in view
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {/* Change request: one project-wise filter + whole-dashboard downloads
-              (PDF and Excel — CSV is gone). */}
-          <DashboardProjectFilter
-            projects={projects.map((p) => ({ id: p.id, key: p.key, name: p.name }))}
-            selected={selected?.id ?? ""}
+          <DashboardFilterBar
+            workspaces={accessibleProjects.map((p: any) => ({ id: p.id, key: p.key, name: p.name, isCompleted: !!p.isCompleted }))}
+            availableYears={availableYears}
+            users={userOptions}
+            canFilterUsers={canFilterUsers}
+            isRegularUser={isRegularUser}
+            viewerId={user.id}
           />
           <DashboardExport
-            scopeId={selected?.id ?? ""}
-            scopeKey={selected?.key ?? "all"}
-            scopeLabel={selected ? `${selected.key} · ${selected.name}` : "All projects"}
+            queryString={queryString}
+            scopeKey={resolved.projects.length === 1 ? resolved.projects[0].key : "dashboard"}
+            workspaceLabel={resolved.workspaceLabel}
+            periodLabel={resolved.periodLabel}
+            userLabel={resolved.userLabel}
             summary={summary}
             assigned={assigned.map(lite)}
             qaQueue={qaQueue.map(lite)}
             overdue={overdue.map(lite)}
-            recent={recent.map((a) => ({
+            recent={recent.map((a: any) => ({
               key: taskKey(a.task.project.key, a.task.serial),
               title: a.task.title,
               action: activityLabel(a),
               actor: a.actor?.name ?? "system",
               when: new Date(a.createdAt).toISOString().slice(0, 16).replace("T", " "),
             }))}
-            projects={selected
-              ? [{ key: selected.key, name: selected.name }]
-              : projects.map((p) => ({ key: p.key, name: p.name }))}
+            taskDetails={taskDetails.map(detailLite)}
           />
           <span className={`rounded-full border border-line px-2.5 py-1 text-xs font-medium ${user.isSuperAdmin ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300" : "bg-surface text-muted"}`}>
             {roleLabel}
@@ -246,13 +292,25 @@ export default async function MyWorkPage({ searchParams }: { searchParams: Promi
         </Card>
       </div>
 
-      {projects.length === 0 && (
+      {accessibleProjects.length === 0 && (
         <p className="mt-3 rounded border bg-surface p-4 text-sm border-line">
           You are not a member of any project yet. Ask an administrator to add you.
         </p>
       )}
 
-      {projects.length > 0 && (
+      {accessibleProjects.length > 0 && resolved.projectIds.length === 0 && (
+        <p className="mt-3 rounded border border-dashed border-line bg-surface p-4 text-sm text-muted">
+          No workspaces selected. Use the workspace filter to choose workspaces.
+        </p>
+      )}
+
+      {accessibleProjects.length > 0 && resolved.projectIds.length > 0 && resolved.periods !== null && resolved.periods.length === 0 && (
+        <p className="mt-3 rounded border border-dashed border-line bg-surface p-4 text-sm text-muted">
+          No months or years selected. Use the Month and Year filters to choose a reporting period.
+        </p>
+      )}
+
+      {accessibleProjects.length > 0 && resolved.projectIds.length > 0 && !(resolved.periods !== null && resolved.periods.length === 0) && (
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           <Card
             title={`Assigned to me (${assigned.length})`}
@@ -292,13 +350,13 @@ export default async function MyWorkPage({ searchParams }: { searchParams: Promi
         </div>
       )}
 
-      {projects.length > 0 && (
+      {accessibleProjects.length > 0 && (
         <div className="mt-4 space-y-3">
-          {projects.filter((p) => !p.isCompleted).length > 0 && (
+          {accessibleProjects.filter((p: any) => !p.isCompleted).length > 0 && (
             <div>
               <h2 className="mb-2 text-sm font-semibold">WORKSPACES</h2>
               <div className="flex flex-wrap gap-2">
-                {projects.filter((p) => !p.isCompleted).map((p) => (
+                {accessibleProjects.filter((p: any) => !p.isCompleted).map((p: any) => (
                   <Link key={p.id} href={`/p/${p.id}/board`} className="tt-card px-3 py-2 text-sm transition-shadow hover:shadow">
                     <span className="font-mono text-xs text-slate-500">{p.key}</span> {p.name}
                   </Link>
@@ -306,11 +364,11 @@ export default async function MyWorkPage({ searchParams }: { searchParams: Promi
               </div>
             </div>
           )}
-          {projects.filter((p) => p.isCompleted).length > 0 && (
+          {accessibleProjects.filter((p: any) => p.isCompleted).length > 0 && (
             <div>
               <h2 className="mb-2 text-sm font-semibold">COMPLETED</h2>
               <div className="flex flex-wrap gap-2">
-                {projects.filter((p) => p.isCompleted).map((p) => (
+                {accessibleProjects.filter((p: any) => p.isCompleted).map((p: any) => (
                   <Link key={p.id} href={`/p/${p.id}/board`} className="tt-card px-3 py-2 text-sm transition-shadow hover:shadow">
                     <span className="font-mono text-xs text-slate-500">{p.key}</span> {p.name}
                   </Link>

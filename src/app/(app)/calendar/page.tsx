@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/client";
 import { buildCalendarPdf } from "@/lib/pdf";
@@ -15,7 +16,6 @@ import {
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-/** Colour classes for the calendar's day classification (shared with the legend). */
 const DAY_CLASS: Record<string, string> = {
   working: "bg-surface",
   weekly_holiday: "bg-hol-weekly",
@@ -23,13 +23,72 @@ const DAY_CLASS: Record<string, string> = {
   exception: "bg-hol-exception",
 };
 
+function cx(...a: (string | false | null | undefined)[]) { return a.filter(Boolean).join(" "); }
+
+function useDropdown() {
+  const [open, setOpen] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ top: 0, left: 0, width: 0 });
+  useEffect(() => {
+    if (!open) return;
+    const update = () => {
+      const r = btnRef.current?.getBoundingClientRect();
+      if (r) setPos({ top: r.bottom + 4, left: r.left, width: r.width });
+    };
+    update();
+    const onDoc = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (btnRef.current?.contains(t) || panelRef.current?.contains(t)) return;
+      setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", onDoc);
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
+  }, [open]);
+  return { open, setOpen, btnRef, panelRef, pos };
+}
+
+function Panel({ open, pos, panelRef, children, className = "" }: { open: boolean; pos: { top: number; left: number; width: number }; panelRef: React.RefObject<HTMLDivElement | null>; children: React.ReactNode; className?: string }) {
+  if (!open) return null;
+  const style: React.CSSProperties = { position: "fixed", top: Math.min(pos.top, (typeof window !== "undefined" ? window.innerHeight : 800) - 16), left: Math.max(8, Math.min(pos.left, (typeof window !== "undefined" ? window.innerWidth : 1200) - 320)), zIndex: 60 };
+  return createPortal(
+    <div ref={panelRef} style={style} className={cx("glass-strong max-h-80 w-72 overflow-auto rounded-md border border-line p-2 text-xs shadow-lg", className)}>
+      {children}
+    </div>,
+    document.body,
+  );
+}
+
+function RowBtn({ checked, label, onClick, indent = false, bold = false }: { checked: boolean; label: string; onClick: () => void; indent?: boolean; bold?: boolean }) {
+  return (
+    <button type="button" onClick={onClick} className={cx("flex w-full items-center gap-2 rounded px-2 py-1 text-left hover:bg-line", indent && "pl-5", bold && "font-medium")}>
+      <input type="checkbox" readOnly checked={checked} className="h-3.5 w-3.5 accent-indigo-600" />
+      <span className="min-w-0 flex-1 truncate" title={label}>{label}</span>
+    </button>
+  );
+}
+
+function uniq<T>(arr: T[]) { return [...new Set(arr)]; }
+
 export default function CalendarPage() {
   const router = useRouter();
   const [view, setView] = useState<"month" | "week">("month");
   const [anchor, setAnchor] = useState(() => new Date());
-  const [projectId, setProjectId] = useState("");
-  // Phase 5: the calendar opens on MY tasks; "All tasks" lifts the filter.
-  const [assigneeId, setAssigneeId] = useState("me");
+
+  // Multi-select filters
+  const [selectedProjectIds, setSelectedProjectIds] = useState<string[] | null>(null); // null = not initialized (use default ongoing)
+  const [selectedUserIds, setSelectedUserIds] = useState<string[] | null>(null); // null = not initialized (default all users)
+  const [includeUnassigned, setIncludeUnassigned] = useState(true);
+
   const [data, setData] = useState<CalendarData | null>(null);
   const [error, setError] = useState("");
   const [msg, setMsg] = useState("");
@@ -43,16 +102,65 @@ export default function CalendarPage() {
   const toKey = dayKey(cells[cells.length - 1]);
   const todayKey = dayKey(new Date());
 
+  const projects = data?.projects ?? [];
+  const ongoing = useMemo(() => projects.filter((p: any) => !p.isCompleted), [projects]);
+  const completed = useMemo(() => projects.filter((p: any) => p.isCompleted), [projects]);
+  const ongoingIds = useMemo(() => ongoing.map((p: any) => p.id), [ongoing]);
+
+  // Initialize defaults once we know available projects/users
+  useEffect(() => {
+    if (!data) return;
+    if (selectedProjectIds === null) {
+      setSelectedProjectIds(ongoingIds); // default: ongoing workspaces selected
+    }
+    if (selectedUserIds === null) {
+      setSelectedUserIds((data.members ?? []).map((m) => m.userId)); // default: all users selected
+      setIncludeUnassigned(true);
+    }
+  }, [data, ongoingIds, selectedProjectIds, selectedUserIds]);
+
+  const effectiveProjectIds = selectedProjectIds ?? ongoingIds; // before init, behave as default ongoing
+  const allMemberIds = (data?.members ?? []).map((m) => m.userId);
+  const effectiveUserIds = selectedUserIds ?? allMemberIds;
+  const effectiveUnassigned = selectedUserIds === null ? true : includeUnassigned;
+
+  const wsAllSelected = projects.length > 0 && projects.every((p: any) => effectiveProjectIds.includes(p.id));
+  const wsAllOngoing = ongoing.length > 0 && ongoing.every((p: any) => effectiveProjectIds.includes(p.id)) && completed.every((p: any) => !effectiveProjectIds.includes(p.id));
+  const wsAllCompleted = completed.length > 0 && completed.every((p: any) => effectiveProjectIds.includes(p.id)) && ongoing.every((p: any) => !effectiveProjectIds.includes(p.id));
+
+  const usersAllSelected = allMemberIds.length > 0 && allMemberIds.every((id) => effectiveUserIds.includes(id)) && effectiveUnassigned;
+
   useEffect(() => {
     const params = new URLSearchParams({ from: fromKey, to: toKey });
-    if (projectId) params.set("projectId", projectId);
-    if (assigneeId) params.set("assigneeId", assigneeId);
+    // workspaces
+    if (selectedProjectIds !== null) {
+      if (selectedProjectIds.length === 0) {
+        params.append("projectId", "__none__");
+      } else if (wsAllSelected) {
+        params.append("projectId", "__all__");
+      } else {
+        selectedProjectIds.forEach((id) => params.append("projectId", id));
+      }
+    } // null => let server default to ongoing
+    // users
+    if (selectedUserIds !== null) {
+      const all = usersAllSelected;
+      if (all) {
+        // default all users => no filter
+      } else {
+        if (effectiveUserIds.length === 0 && !effectiveUnassigned) {
+          params.append("assigneeId", "__none_user__");
+        } else {
+          effectiveUserIds.forEach((id) => params.append("assigneeId", id));
+          if (effectiveUnassigned) params.append("assigneeId", "none");
+        }
+      }
+    }
     api<CalendarData>(`/api/calendar?${params.toString()}`)
       .then((d) => { setData(d); setError(""); })
       .catch((e) => setError(e instanceof Error ? e.message : "Failed to load calendar."));
-  }, [fromKey, toKey, projectId, assigneeId, reloadKey]);
+  }, [fromKey, toKey, selectedProjectIds, selectedUserIds, includeUnassigned, reloadKey, wsAllSelected, usersAllSelected, effectiveUserIds, effectiveUnassigned]);
 
-  /** Holiday spans as the shared precedence helper wants them (startDate/endDate). */
   const spans = useMemo<HolidaySpan[]>(
     () => (data?.holidays ?? []).map((h) => ({
       id: h.id, startDate: h.date, endDate: h.endDate,
@@ -61,7 +169,6 @@ export default function CalendarPage() {
     [data],
   );
 
-  /** Every day of every range → the spans covering it (a range shows on all its days). */
   const holidayByDay = useMemo(() => {
     const map = new Map<string, HolidaySpan[]>();
     for (const span of spans) {
@@ -90,7 +197,6 @@ export default function CalendarPage() {
       : new Date(a.getFullYear(), a.getMonth(), a.getDate() + dir * 7));
   }
 
-  /** Admin quick action: mark a holiday/weekend as a working day, or restore it. */
   async function toggleException(day: string, has: boolean) {
     if (busyDay) return;
     setBusyDay(day);
@@ -112,18 +218,12 @@ export default function CalendarPage() {
     }
   }
 
-  // Phase 5: PDF export of the current view + filters. Holiday ranges are
-  // expanded to one entry per day; working-day exceptions print as an extra
-  // "Office open" label so the paper copy matches the grid.
   async function downloadPdf() {
     if (!data || pdfBusy) return;
     setPdfBusy(true);
     try {
-      const projName = data.projects.find((p) => p.id === projectId)?.name;
-      const assigneeName =
-        assigneeId === "me" ? "Assigned to me" :
-        assigneeId === "none" ? "Unassigned" :
-        data.members.find((m) => m.userId === assigneeId)?.name;
+      const wsLabel = wsAllSelected ? "All Workspaces" : wsAllOngoing ? "Ongoing Workspaces" : wsAllCompleted ? "Completed Workspaces" : `${effectiveProjectIds.length} workspaces`;
+      const userLabel = usersAllSelected ? "All users" : `${effectiveUserIds.length + (effectiveUnassigned ? 1 : 0)} selected`;
       const pdfHolidays: { date: string; name: string }[] = [];
       for (const [date, list] of holidayByDay) {
         for (const h of list) pdfHolidays.push({ date, name: h.name || "Holiday" });
@@ -131,7 +231,7 @@ export default function CalendarPage() {
       for (const e of data.exceptions) pdfHolidays.push({ date: e.date, name: e.note || "Office open" });
       const doc = await buildCalendarPdf({
         title,
-        subtitle: `${projName ?? "All projects"} · ${assigneeName ?? "Anyone"}`,
+        subtitle: `${wsLabel} · ${userLabel}`,
         generatedAt: new Date(),
         cells: cells.map((d) => ({ dayKey: dayKey(d), inMonth: d.getMonth() === anchor.getMonth() })),
         holidays: pdfHolidays,
@@ -142,6 +242,49 @@ export default function CalendarPage() {
       setPdfBusy(false);
     }
   }
+
+  // Dropdown helpers
+  const wsDrop = useDropdown();
+  const userDrop = useDropdown();
+  const btnBase = "tt-btn max-w-[14rem] truncate";
+  const actionBtn = "rounded px-2 py-0.5 text-[11px] text-muted hover:bg-line hover:text-ink";
+
+  const wsLabel = wsAllSelected ? "All Workspaces" : wsAllOngoing ? "Ongoing Workspaces" : wsAllCompleted ? "Completed Workspaces" : effectiveProjectIds.length === 1 ? (projects.find((p: any) => p.id === effectiveProjectIds[0]) ? `${projects.find((p: any)=>p.id===effectiveProjectIds[0])!.key} · ${projects.find((p: any)=>p.id===effectiveProjectIds[0])!.name}` : "1 workspace") : `${effectiveProjectIds.length} workspaces`;
+  const userLabel = usersAllSelected ? "All users" : `${effectiveUserIds.length + (effectiveUnassigned ? 1 : 0)} selected`;
+
+  const setWs = (ids: string[]) => setSelectedProjectIds(ids);
+  const toggleWs = (id: string) => {
+    const cur = new Set(effectiveProjectIds);
+    if (cur.has(id)) cur.delete(id); else cur.add(id);
+    setSelectedProjectIds([...cur]);
+  };
+  const selectAllWs = () => setSelectedProjectIds(projects.map((p: any) => p.id));
+  const selectOngoing = () => setSelectedProjectIds(ongoingIds);
+  const selectCompleted = () => setSelectedProjectIds(completed.map((p: any) => p.id));
+  const clearWs = () => setSelectedProjectIds([]);
+
+  const toggleUser = (id: string) => {
+    if (usersAllSelected) {
+      // switch from All users to only this user
+      setSelectedUserIds([id]);
+      setIncludeUnassigned(false);
+      return;
+    }
+    const cur = new Set(effectiveUserIds);
+    if (cur.has(id)) cur.delete(id); else cur.add(id);
+    setSelectedUserIds([...cur]);
+  };
+  const toggleUnassigned = () => {
+    if (usersAllSelected) {
+      // switch from All users to only Unassigned
+      setSelectedUserIds([]);
+      setIncludeUnassigned(true);
+      return;
+    }
+    setIncludeUnassigned((v) => !v);
+  };
+  const selectAllUsers = () => { setSelectedUserIds(allMemberIds); setIncludeUnassigned(true); };
+  const clearUsers = () => { setSelectedUserIds([]); setIncludeUnassigned(false); };
 
   const chip = (t: CalendarTask) => (
     <button
@@ -171,37 +314,61 @@ export default function CalendarPage() {
           <option value="month">Month</option>
           <option value="week">Week</option>
         </select>
-        {/* Phase 5: "My tasks" is the default view; "All tasks" lifts the assignee filter. */}
-        <div className="flex overflow-hidden rounded border dark:border-slate-700">
-          <button
-            onClick={() => setAssigneeId("me")}
-            className={`px-2 py-1 ${assigneeId === "me" ? "bg-accent font-semibold text-white" : "hover:bg-line"}`}
-            title="Only tasks assigned to me"
-          >
-            My tasks
+
+        {/* Workspace multi-select */}
+        <div>
+          <button ref={wsDrop.btnRef} type="button" className={btnBase} onClick={() => wsDrop.setOpen((v) => !v)} title="Workspaces">
+            <span className="truncate">{wsLabel}</span>
+            <IconChevronRight className={cx("h-3.5 w-3.5 transition-transform", wsDrop.open && "rotate-90")} />
           </button>
-          <button
-            onClick={() => { if (assigneeId === "me") setAssigneeId(""); }}
-            className={`px-2 py-1 ${assigneeId !== "me" ? "bg-accent font-semibold text-white" : "hover:bg-line"}`}
-            title="Tasks of everyone"
-          >
-            All tasks
-          </button>
+          <Panel open={wsDrop.open} pos={wsDrop.pos} panelRef={wsDrop.panelRef}>
+            <div className="mb-1 flex items-center justify-between px-1">
+              <span className="font-semibold">Workspaces</span>
+              <div className="flex items-center gap-1 rounded-md border border-line bg-surface p-0.5">
+                <button type="button" className={actionBtn} onClick={selectAllWs}>Select All</button>
+                <button type="button" className={actionBtn} onClick={clearWs}>Clear</button>
+              </div>
+            </div>
+            <RowBtn checked={wsAllSelected && effectiveProjectIds.length > 0} label="All Workspaces" onClick={selectAllWs} bold />
+            <RowBtn checked={wsAllOngoing && effectiveProjectIds.length > 0} label="Ongoing Workspaces" onClick={selectOngoing} bold />
+            <RowBtn checked={wsAllCompleted && effectiveProjectIds.length > 0} label="Completed Workspaces" onClick={selectCompleted} bold />
+            <div className="my-1 border-t border-line" />
+            {ongoing.length > 0 && <div className="px-2 py-1 text-[10px] font-semibold uppercase text-muted">Ongoing</div>}
+            {ongoing.map((p: any) => (
+              <RowBtn key={p.id} checked={effectiveProjectIds.includes(p.id)} label={`${p.key} · ${p.name}`} onClick={() => toggleWs(p.id)} indent />
+            ))}
+            {completed.length > 0 && <div className="mt-1 px-2 py-1 text-[10px] font-semibold uppercase text-muted">Completed</div>}
+            {completed.map((p: any) => (
+              <RowBtn key={p.id} checked={effectiveProjectIds.includes(p.id)} label={`${p.key} · ${p.name}`} onClick={() => toggleWs(p.id)} indent />
+            ))}
+            {projects.length === 0 && <p className="px-2 py-1 text-muted">No workspaces.</p>}
+          </Panel>
         </div>
-        <select value={projectId} onChange={(e) => setProjectId(e.target.value)} className="rounded border p-1 dark:border-slate-700 dark:bg-slate-800" title="Project filter" aria-label="Project filter">
-          <option value="">All projects</option>
-          {(data?.projects ?? []).map((p) => (
-            <option key={p.id} value={p.id}>{p.key} · {p.name}</option>
-          ))}
-        </select>
-        <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)} className="rounded border p-1 dark:border-slate-700 dark:bg-slate-800" title="Assignee filter" aria-label="Assignee filter">
-          <option value="">Anyone</option>
-          <option value="me">Assigned to me</option>
-          <option value="none">Unassigned</option>
-          {(data?.members ?? []).map((m) => (
-            <option key={m.userId} value={m.userId}>{m.name}</option>
-          ))}
-        </select>
+
+        {/* User multi-select */}
+        <div>
+          <button ref={userDrop.btnRef} type="button" className={btnBase} onClick={() => userDrop.setOpen((v) => !v)} title="Users">
+            <span className="truncate">{userLabel}</span>
+            <IconChevronRight className={cx("h-3.5 w-3.5 transition-transform", userDrop.open && "rotate-90")} />
+          </button>
+          <Panel open={userDrop.open} pos={userDrop.pos} panelRef={userDrop.panelRef}>
+            <div className="mb-1 flex items-center justify-between px-1">
+              <span className="font-semibold">Users</span>
+              <div className="flex items-center gap-1 rounded-md border border-line bg-surface p-0.5">
+                <button type="button" className={actionBtn} onClick={selectAllUsers}>Select All</button>
+                <button type="button" className={actionBtn} onClick={clearUsers}>Clear</button>
+              </div>
+            </div>
+            <RowBtn checked={usersAllSelected} label="All users" onClick={selectAllUsers} bold />
+            <div className="my-1 border-t border-line" />
+            <RowBtn checked={usersAllSelected || effectiveUnassigned} label="Unassigned" onClick={toggleUnassigned} />
+            {(data?.members ?? []).map((m) => (
+              <RowBtn key={m.userId} checked={usersAllSelected || effectiveUserIds.includes(m.userId)} label={m.name} onClick={() => toggleUser(m.userId)} />
+            ))}
+            {(data?.members ?? []).length === 0 && <p className="px-2 py-1 text-muted">No users available.</p>}
+          </Panel>
+        </div>
+
         {error && (
           <span className="flex items-center gap-1 rounded bg-red-50 px-2 py-0.5 text-red-700 dark:bg-red-950 dark:text-red-300" role="alert">
             {error}
@@ -219,7 +386,6 @@ export default function CalendarPage() {
         </button>
       </div>
 
-      {/* Colour legend — the same classification the cells below use. */}
       <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted">
         <span className="inline-flex items-center gap-1">
           <span className="inline-block h-3 w-3 rounded-sm border border-line bg-hol-weekly" /> Weekly holiday (Fri/Sat)
@@ -256,7 +422,6 @@ export default function CalendarPage() {
             const inMonth = d.getMonth() === anchor.getMonth();
             const info = classifyDay(key, d, spans, exceptionByDay);
             const holidays = holidayByDay.get(key) ?? [];
-            // Tasks span from start date to end date on the calendar.
             const tasks = data.tasks.filter((t) => occursOn(t.startDate, t.endDate, key));
             const canToggle = data.canManageGlobal;
             return (
@@ -322,4 +487,4 @@ export default function CalendarPage() {
       )}
     </div>
   );
-}
+}

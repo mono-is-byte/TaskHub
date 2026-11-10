@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { api } from "@/lib/client";
 import { GENDERS } from "@/lib/accountRules";
 import Avatar from "@/components/Avatar";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { MobileTopBar } from "@/components/SidebarToggle";
-import { IconPlus } from "@/components/icons";
+import { IconChevronRight, IconPlus } from "@/components/icons";
 
 /**
  * The dedicated Users page (sidebar entry, visible to Admins and PMs only).
@@ -68,6 +69,36 @@ export default function UsersPage() {
   const [projectsErr, setProjectsErr] = useState("");
 
   const [deleting, setDeleting] = useState<U | null>(null);
+  const [actionsMenu, setActionsMenu] = useState<{ id: string; top: number; left: number } | null>(null);
+  const actionsBtnRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const actionsPanelRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!actionsMenu) return;
+    const onDoc = (e: MouseEvent) => {
+      const t = e.target as Node;
+      const btn = actionsBtnRefs.current[actionsMenu.id];
+      if (btn?.contains(t) || actionsPanelRef.current?.contains(t)) return;
+      setActionsMenu(null);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setActionsMenu(null); };
+    const onReposition = () => {
+      const btn = actionsBtnRefs.current[actionsMenu.id];
+      if (!btn) return setActionsMenu(null);
+      const r = btn.getBoundingClientRect();
+      setActionsMenu({ id: actionsMenu.id, top: r.bottom + 4, left: Math.max(8, r.right - 180) });
+    };
+    document.addEventListener("mousedown", onDoc);
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("resize", onReposition);
+    window.addEventListener("scroll", onReposition, true);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", onReposition);
+      window.removeEventListener("scroll", onReposition, true);
+    };
+  }, [actionsMenu]);
 
   async function load() {
     try {
@@ -315,21 +346,23 @@ export default function UsersPage() {
                   <button onClick={() => void openProjects(u)} className={btn}>View projects</button>
                 </td>
                 <td className="p-2">
-                  <div className="flex flex-wrap gap-1">
-                    <button onClick={() => { setEditing(u); setEditName(u.name); setEditEmail(u.email); setEditDesignation(u.designation ?? ""); setEditGender(u.gender ?? ""); }} className={btn}>Edit</button>
-                    {isAdmin && (
-                      <>
-                        <button onClick={() => void resetPw(u)} disabled={busy === u.id + "pw"} className={btn}>Reset pw</button>
-                        <button onClick={() => void patchUser(u, { active: !u.active }, "act")} className={btn}>
-                          {u.active ? "Deactivate" : "Activate"}
-                        </button>
-                        <button onClick={() => void patchUser(u, { isSuperAdmin: !u.isSuperAdmin }, "admin")} className={btn}>
-                          {u.isSuperAdmin ? "Remove admin" : "Make admin"}
-                        </button>
-                        <button onClick={() => setDeleting(u)} className="rounded border px-2 py-0.5 text-xs text-red-600 dark:border-slate-700 dark:text-red-400">Delete</button>
-                      </>
-                    )}
-                  </div>
+                  <button
+                    ref={(el) => { actionsBtnRefs.current[u.id] = el; }}
+                    type="button"
+                    className={`${btn} inline-flex items-center gap-1`}
+                    onClick={() => {
+                      setActionsMenu((cur) => {
+                        if (cur?.id === u.id) return null;
+                        const el = actionsBtnRefs.current[u.id];
+                        const r = el?.getBoundingClientRect();
+                        return r ? { id: u.id, top: r.bottom + 4, left: Math.max(8, r.right - 180) } : null;
+                      });
+                    }}
+                    aria-haspopup="menu"
+                    aria-expanded={actionsMenu?.id === u.id}
+                  >
+                    Actions <IconChevronRight className={`h-3.5 w-3.5 transition-transform ${actionsMenu?.id === u.id ? "rotate-90" : ""}`} />
+                  </button>
                 </td>
               </tr>
             ))}
@@ -467,6 +500,50 @@ export default function UsersPage() {
           </div>
         </div>
       )}
+
+      {actionsMenu && (() => {
+        const u = users.find((x) => x.id === actionsMenu.id);
+        if (!u) return null;
+        const menuItem = "flex w-full items-center rounded px-2 py-1.5 text-left text-xs hover:bg-line disabled:opacity-50";
+        return createPortal(
+          <div
+            ref={actionsPanelRef}
+            role="menu"
+            aria-label={`Actions for ${u.name}`}
+            style={{ position: "fixed", top: Math.min(actionsMenu.top, (typeof window !== "undefined" ? window.innerHeight : 800) - 16), left: Math.max(8, Math.min(actionsMenu.left, (typeof window !== "undefined" ? window.innerWidth : 1200) - 190)), zIndex: 70 }}
+            className="glass-strong w-44 rounded-md border border-line p-1 shadow-lg"
+          >
+            <button
+              type="button"
+              role="menuitem"
+              className={menuItem}
+              onClick={() => {
+                setActionsMenu(null);
+                setEditing(u);
+                setEditName(u.name);
+                setEditEmail(u.email);
+                setEditDesignation(u.designation ?? "");
+                setEditGender(u.gender ?? "");
+              }}
+            >
+              Edit
+            </button>
+            {isAdmin && (
+              <>
+                <button type="button" role="menuitem" className={menuItem} disabled={busy === u.id + "pw"} onClick={() => { setActionsMenu(null); void resetPw(u); }}>Reset pw</button>
+                <button type="button" role="menuitem" className={menuItem} onClick={() => { setActionsMenu(null); void patchUser(u, { active: !u.active }, "act"); }}>
+                  {u.active ? "Deactivate" : "Activate"}
+                </button>
+                <button type="button" role="menuitem" className={menuItem} onClick={() => { setActionsMenu(null); void patchUser(u, { isSuperAdmin: !u.isSuperAdmin }, "admin"); }}>
+                  {u.isSuperAdmin ? "Remove admin" : "Make admin"}
+                </button>
+                <button type="button" role="menuitem" className={`${menuItem} text-red-600 dark:text-red-400`} onClick={() => { setActionsMenu(null); setDeleting(u); }}>Delete</button>
+              </>
+            )}
+          </div>,
+          document.body
+        );
+      })()}
 
       {deleting && (
         <ConfirmDialog

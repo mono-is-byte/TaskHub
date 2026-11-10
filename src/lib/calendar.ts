@@ -89,13 +89,19 @@ export interface CalendarFilters {
   /** Inclusive range; query is usually widened ±1 day for timezone slack. */
   from: Date;
   to: Date;
+  /** Restrict to these authorized project IDs. When omitted/undefined, all scoped projects are included. */
+  projectIds?: string[];
+  /** Filter by assignees (OR). "me" should be resolved before calling. */
+  assigneeIds?: string[];
+  /** Include unassigned tasks in assignee filter. */
+  includeUnassigned?: boolean;
+  // Backward compat
   projectId?: string;
-  /** User id; "none" matches unassigned tasks. */
   assigneeId?: string;
 }
 
 export interface CalendarData {
-  projects: { id: string; key: string; name: string }[];
+  projects: { id: string; key: string; name: string; isCompleted: boolean }[];
   /** True for Admins: they may manage the (global) holidays from Calendar Settings. */
   canManageGlobal: boolean;
   members: { userId: string; name: string }[];
@@ -118,15 +124,20 @@ export async function fetchCalendarData(
   user: CalendarUser,
   filters: CalendarFilters,
 ): Promise<CalendarData> {
-  const scope = await scopeProjectIds(client, user);
+  const scopedAll = await scopeProjectIds(client, user);
+  let projectScope = scopedAll;
   if (filters.projectId) {
-    if (!scope.includes(filters.projectId)) throw new Error("No access to this project.");
-    scope.length = 0;
-    scope.push(filters.projectId);
+    // Backward compat: explicit single project must be accessible
+    if (!scopedAll.includes(filters.projectId)) throw new Error("No access to this project.");
+    projectScope = [filters.projectId];
+  } else if (filters.projectIds && filters.projectIds.length > 0) {
+    const allowed = new Set(scopedAll);
+    projectScope = filters.projectIds.filter((id) => allowed.has(id));
   }
+  // All accessible projects for filter options; tasks/data scoped to selection.
   const projects = await client.project.findMany({
-    where: { id: { in: scope } },
-    select: { id: true, key: true, name: true },
+    where: { id: { in: scopedAll.length ? scopedAll : ["__none__"] } },
+    select: { id: true, key: true, name: true, isCompleted: true },
     orderBy: { key: "asc" },
   });
 
@@ -136,14 +147,32 @@ export async function fetchCalendarData(
     { dueAt: { gte: filters.from, lte: filters.to } },
     { startDate: { lt: filters.from }, endDate: { gt: filters.to } },
     { startDate: { lt: filters.from }, dueAt: { gt: filters.to } },
+    { startDate: { lte: filters.to }, endDate: { gte: filters.from } },
+    { startDate: { lte: filters.to }, dueAt: { gte: filters.from } },
   ];
-  const assignee =
-    filters.assigneeId === "none" ? { assigneeId: null } :
-    filters.assigneeId ? { assigneeId: filters.assigneeId } : {};
+
+  let assigneeWhere: any = {};
+  if (filters.assigneeIds || filters.includeUnassigned) {
+    const ids = (filters.assigneeIds ?? []).filter(Boolean);
+    const ors: any[] = [];
+    if (ids.length > 0) ors.push({ assigneeId: { in: ids } });
+    if (filters.includeUnassigned) ors.push({ assigneeId: null });
+    if (ors.length === 0) {
+      assigneeWhere = { assigneeId: "__none__" }; // explicit empty selection
+    } else if (ors.length === 1) {
+      assigneeWhere = ors[0];
+    } else {
+      assigneeWhere = { OR: ors };
+    }
+  } else if (filters.assigneeId === "none") {
+    assigneeWhere = { assigneeId: null };
+  } else if (filters.assigneeId) {
+    assigneeWhere = { assigneeId: filters.assigneeId };
+  } // else all users
 
   const [tasks, holidays, exceptions, memberRows] = await Promise.all([
     client.task.findMany({
-      where: { projectId: { in: scope }, OR: overlap, ...assignee },
+      where: { projectId: { in: projectScope.length ? projectScope : ["__none__"] }, OR: overlap, ...assigneeWhere },
       include: {
         status: { select: { name: true, color: true, category: true, timerRole: true } },
         priority: { select: { name: true, color: true } },
@@ -170,7 +199,7 @@ export async function fetchCalendarData(
       orderBy: { date: "asc" },
     }),
     client.projectMember.findMany({
-      where: { projectId: { in: scope } },
+      where: { projectId: { in: scopedAll.length ? scopedAll : ["__none__"] } },
       select: { userId: true, user: { select: { name: true } } },
       distinct: ["userId"],
     }),
@@ -195,7 +224,8 @@ export async function fetchCalendarData(
       assigneeId: t.assigneeId, assigneeName: t.assignee?.name ?? null,
       assignedByName: t.assignedBy ? `${t.assignedBy.name}${t.assignedBy.deletedAt ? " (removed)" : ""}` : null,
       startDate: t.startDate ? dayKey(t.startDate) : null,
-      endDate: t.endDate ? dayKey(t.endDate) : null,
+      // Use endDate, falling back to dueAt for calendar placement (timer due as due day)
+      endDate: (t.endDate ?? t.dueAt) ? dayKey((t.endDate ?? t.dueAt) as Date) : null,
       dueAt: t.dueAt ? dayKey(t.dueAt) : null,
       timerState: timerInfo({ ...t, statusRole: t.status.timerRole } as TimerFields).state,
     })),
