@@ -62,7 +62,7 @@ function LoginForm() {
       <div className="flex flex-1 items-center justify-center p-4">
         <div className="glass-strong grid w-full max-w-4xl overflow-hidden rounded-2xl border border-line shadow-xl md:grid-cols-2">
         {/* Brand panel — hidden on small screens, full panel from md up. */}
-        <div className="hidden flex-col justify-between p-8 text-white md:flex" style={{ backgroundColor: "#708AF4" }}>
+        <div className="hidden flex-col justify-between p-8 text-white md:flex" style={{ backgroundColor: "#000000" }}>
           <div>
             <div className="mb-6 flex justify-center">
               <Image
@@ -71,7 +71,7 @@ function LoginForm() {
                 width={844}
                 height={369}
                 unoptimized
-                className="h-16 w-auto object-contain brightness-0 invert"
+                className="h-16 w-auto object-contain"
               />
             </div>
             <h2 className="text-center text-2xl font-bold leading-snug">Plan, track and finish your team&apos;s work.</h2>
