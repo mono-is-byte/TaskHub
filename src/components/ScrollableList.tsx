@@ -81,10 +81,10 @@ export default function ScrollableList({
           {visible.map((item, i) => (
             <li key={(item as { id?: string })?.id ?? i}>{renderItem(item, i)}</li>
           ))}
-          {items.length === 0 && <li className="text-xs text-slate-400">{emptyText}</li>}
+          {items.length === 0 && <li className="text-xs text-muted">{emptyText}</li>}
         </ul>
       </div>
-      <div className="mt-1 flex items-center justify-between text-[11px] text-slate-500">
+      <div className="mt-1 flex items-center justify-between text-[11px] text-muted">
         <span>
           {hidden > 0
             ? `Showing ${visible.length} of ${items.length}`
@@ -99,7 +99,7 @@ export default function ScrollableList({
                 const el = scrollRef.current;
                 if (el) el.scrollTop = el.scrollHeight;
               }}
-              className="rounded border px-2 py-0.5 hover:bg-line dark:border-slate-700"
+              className="rounded border px-2 py-0.5 hover:bg-line dark:border-line"
             >
               ↓ Jump to newest
             </button>
@@ -107,7 +107,7 @@ export default function ScrollableList({
           {hidden > 0 && (
             <button
               onClick={() => setShown((n) => n + Math.max(pageSize, 20))}
-              className="rounded border px-2 py-0.5 hover:bg-line dark:border-slate-700"
+              className="rounded border px-2 py-0.5 hover:bg-line dark:border-line"
             >
               Load more ({hidden})
             </button>

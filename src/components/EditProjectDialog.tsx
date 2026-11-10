@@ -75,7 +75,7 @@ export default function EditProjectDialog({
             maxLength={10}
             onChange={(e) => setKey(e.target.value.toUpperCase())}
             placeholder="KEY (e.g. MAP)"
-            className="w-full rounded border border-line bg-surface px-2 py-1 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+            className="w-full rounded border border-line bg-surface px-2 py-1 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-[#708AF4]/40"
           />
         </label>
         <label className="mb-2 block">
@@ -85,7 +85,7 @@ export default function EditProjectDialog({
             maxLength={120}
             onChange={(e) => setName(e.target.value)}
             placeholder="Project name"
-            className="w-full rounded border border-line bg-surface px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+            className="w-full rounded border border-line bg-surface px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#708AF4]/40"
           />
         </label>
         {!keyOk && nextKey.length > 0 && (
@@ -99,7 +99,7 @@ export default function EditProjectDialog({
           <button
             type="submit"
             disabled={busy || !valid || !dirty}
-            className="w-full rounded bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500 disabled:opacity-50 sm:w-auto"
+            className="w-full rounded-md bg-[#708AF4] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#5A76E8] disabled:opacity-50 sm:w-auto"
           >
             {busy ? "Saving…" : "Save"}
           </button>

@@ -39,9 +39,9 @@ type Card = TaskRow & {
 
 /** Left-border colour by timer state (colour + text label, never colour alone). */
 const TIMER_BORDER: Record<string, string> = {
-  running: "border-l-blue-500",
-  overdue: "border-l-red-500",
-  finished: "border-l-green-500",
+  running: "border-l-[#708AF4]",
+  overdue: "border-l-[#EF4444]",
+  finished: "border-l-[#16A34A]",
   paused: "border-l-transparent",
   not_started: "border-l-transparent",
 };
@@ -222,7 +222,7 @@ export default function BoardPage() {
                   <span className="font-medium">{n.n}.</span> {noteText(n)}
                 </div>
               ))}
-              {more > 0 && <div className="text-slate-400">+{more} more</div>}
+              {more > 0 && <div className="text-muted">+{more} more</div>}
             </div>
           );
         })()}
@@ -265,7 +265,7 @@ export default function BoardPage() {
               {showStart && (
                 <button
                   onClick={(e) => { e.stopPropagation(); void timerCardAction(c, "start"); }}
-                  className="ml-auto inline-flex items-center gap-0.5 rounded border border-blue-300 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950"
+                  className="ml-auto inline-flex items-center gap-0.5 rounded-md border border-[rgba(112,138,244,0.45)] px-1.5 py-0.5 text-[10px] font-semibold text-[#708AF4] hover:bg-[rgba(112,138,244,0.12)]"
                   title="Start the timer for this stage"
                 >
                   <IconPlay className="h-2.5 w-2.5" /> Start
@@ -274,7 +274,7 @@ export default function BoardPage() {
               {showStop && (
                 <button
                   onClick={(e) => { e.stopPropagation(); void timerCardAction(c, "stop"); }}
-                  className="ml-auto inline-flex items-center gap-0.5 rounded border border-red-300 px-1.5 py-0.5 text-[10px] font-semibold text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950"
+                  className="ml-auto inline-flex items-center gap-0.5 rounded-md border border-[rgba(239,68,68,0.35)] px-1.5 py-0.5 text-[10px] font-semibold text-[#EF4444] hover:bg-[rgba(239,68,68,0.12)]"
                   title="Stop the timer (work on this stage is done)"
                 >
                   <IconPause className="h-2.5 w-2.5" /> Stop
@@ -297,9 +297,9 @@ export default function BoardPage() {
           <option value="type">Swimlanes: Issue Type</option>
           <option value="priority">Swimlanes: Priority</option>
         </select>
-        {!canChange && <span className="text-slate-500">(Your role cannot change status — drag disabled)</span>}
-        {(msg || error) && <span className="rounded bg-red-50 px-2 py-0.5 text-red-700 dark:bg-red-950 dark:text-red-300">{msg || error}</span>}
-        <span className="ml-auto text-slate-500">{loading ? "Loading…" : `Live ● SSE${typeof window !== "undefined" && "EventSource" in window ? "" : " (polling)"}`}</span>
+        {!canChange && <span className="text-muted">(Your role cannot change status — drag disabled)</span>}
+        {(msg || error) && <span className="rounded-md border border-[rgba(239,68,68,0.3)] bg-[rgba(239,68,68,0.12)] px-2 py-0.5 text-[#B91C1C] dark:text-[#FCA5A5]">{msg || error}</span>}
+        <span className="ml-auto text-muted">{loading ? "Loading…" : `Live ● SSE${typeof window !== "undefined" && "EventSource" in window ? "" : " (polling)"}`}</span>
       </div>
 
       {lanes.map((l) => (
@@ -340,20 +340,20 @@ export default function BoardPage() {
                       setDragId(null);
                     }
                   }}
-                  className={`w-64 shrink-0 rounded bg-slate-100 p-1 transition-opacity dark:bg-slate-800/60 ${
+                  className={`w-64 shrink-0 rounded-lg border border-line bg-[var(--row-hover)] p-1.5 transition-opacity ${
                     dragId && !canDrop(typed.find((c) => c.id === dragId), s.id) ? "opacity-40" : ""
                   }`}>
                   <div className="mb-1 flex items-center gap-1 px-1 text-xs font-bold" style={{ color: s.color }}>
                     <span className="inline-block h-2 w-2 rounded-full" style={{ background: s.color }} />
                     {s.name}
-                    <span className="text-slate-500">({col.length}{limit != null ? `/${limit}` : ""})</span>
-                    {over && <span className="rounded bg-red-600 px-1 text-[10px] text-white">WIP!</span>}
+                    <span className="text-muted">({col.length}{limit != null ? `/${limit}` : ""})</span>
+                    {over && <span className="rounded bg-[#EF4444] px-1 text-[10px] font-semibold text-[#FFFFFF]">WIP!</span>}
                   </div>
                   {col.map((c) => cardView(c))}
                   {canCreate && s.id === createStatusId && addingTo !== s.id && (
                     <button
                       onClick={() => { setAddingTo(s.id); setAddTitle(""); }}
-                      className="mt-1 w-full rounded border border-dashed p-1 text-[11px] text-slate-500 hover:bg-line/50 dark:border-slate-700"
+                      className="mt-1 w-full rounded border border-dashed p-1 text-[11px] text-muted hover:bg-line/50 dark:border-line"
                     >
                       + Add Task
                     </button>
@@ -369,13 +369,13 @@ export default function BoardPage() {
                         onChange={(e) => setAddTitle(e.target.value)}
                         onKeyDown={(e) => { if (e.key === "Escape") { setAddingTo(null); setAddTitle(""); } }}
                         placeholder="Task title…"
-                        className="w-full rounded border px-1 py-0.5 text-xs dark:border-slate-700 dark:bg-slate-800"
+                        className="w-full rounded-md border border-line bg-surface px-1.5 py-1 text-xs"
                       />
-                      <button type="submit" className="rounded bg-indigo-600 px-2 py-0.5 text-[11px] text-white">Add</button>
+                      <button type="submit" className="rounded-md bg-[#708AF4] px-2 py-1 text-[11px] font-semibold text-[#FFFFFF] hover:bg-[#5A76E8]">Add</button>
                       <button
                         type="button"
                         onClick={() => { setAddingTo(null); setAddTitle(""); }}
-                        className="rounded border px-2 py-0.5 text-[11px] dark:border-slate-700"
+                        className="tt-btn px-2 py-1 text-[11px]"
                         title="Cancel"
                         aria-label="Cancel"
                       >

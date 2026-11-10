@@ -100,13 +100,13 @@ export default function NotificationsBell() {
         >
           <div className="mb-1 flex items-center justify-between">
             <strong className="text-sm">Notifications</strong>
-            <button onClick={markAll} className="text-xs text-indigo-600">Mark all read</button>
+            <button onClick={markAll} className="text-xs font-medium text-[#708AF4] hover:underline">Mark all read</button>
           </div>
-          {notes.length === 0 && <p className="text-xs text-slate-500">No notifications.</p>}
+          {notes.length === 0 && <p className="text-xs text-muted">No notifications.</p>}
           {notes.map((n) => (
-            <a key={n.id} href={n.link ?? "#"} className={`block rounded p-2 text-xs hover:bg-slate-100 dark:hover:bg-slate-800 ${n.read ? "opacity-60" : ""}`}>
+            <a key={n.id} href={n.link ?? "#"} className={`block rounded p-2 text-xs hover:bg-canvas dark:hover:bg-[var(--row-hover)] ${n.read ? "opacity-60" : ""}`}>
               <div className="font-semibold">{n.title}</div>
-              {n.body && <div className="text-slate-500">{n.body}</div>}
+              {n.body && <div className="text-muted">{n.body}</div>}
             </a>
           ))}
         </div>,

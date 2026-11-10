@@ -35,7 +35,7 @@ export const viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${bengali.variable} bg-slate-100 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100`}>
+      <body className={`${inter.variable} ${bengali.variable} antialiased`} style={{ backgroundColor: "var(--canvas)", color: "var(--text)" }}>
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('tt_theme');if(!t){var m=document.cookie.match(/tt_theme=([^;]+)/);t=m&&m[1]}if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.classList.toggle('dark',t==='dark');var s=localStorage.getItem('tt.sidebar');document.documentElement.dataset.sb=s==='collapsed'?'collapsed':'expanded'}catch(e){}})();`,

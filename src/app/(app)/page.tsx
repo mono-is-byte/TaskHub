@@ -20,11 +20,11 @@ import {
  */
 
 const TONE = {
-  indigo: "bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-300",
-  emerald: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-300",
-  sky: "bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-300",
-  slate: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
-  red: "bg-red-50 text-red-600 dark:bg-red-950/60 dark:text-red-300",
+  indigo: "bg-[rgba(112,138,244,0.12)] text-[#708AF4]",
+  emerald: "bg-[rgba(22,163,74,0.12)] text-[#16A34A]",
+  sky: "bg-[rgba(112,138,244,0.12)] text-[#708AF4]",
+  slate: "bg-[var(--row-hover)] text-[var(--text-secondary)]",
+  red: "bg-[rgba(239,68,68,0.12)] text-[#EF4444]",
 } as const;
 
 function Kpi({
@@ -163,7 +163,7 @@ export default async function MyWorkPage({ searchParams }: { searchParams: Promi
   function row(t: (typeof assigned)[number]) {
     return (
       <li key={t.id} className="flex items-center gap-2 rounded border bg-surface px-2 py-1 text-sm border-line">
-        <span className="font-mono text-xs text-slate-500">{taskKey(t.project.key, t.serial)}</span>
+        <span className="font-mono text-xs text-muted">{taskKey(t.project.key, t.serial)}</span>
         <Link href={`/p/${t.projectId}/board?task=${t.id}`} className="min-w-0 flex-1 truncate hover:underline">
           {t.title}
         </Link>
@@ -217,7 +217,7 @@ export default async function MyWorkPage({ searchParams }: { searchParams: Promi
             }))}
             taskDetails={taskDetails.map(detailLite)}
           />
-          <span className={`rounded-full border border-line px-2.5 py-1 text-xs font-medium ${user.isSuperAdmin ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300" : "bg-surface text-muted"}`}>
+          <span className={`rounded-full border px-2.5 py-1 text-xs font-medium ${user.isSuperAdmin ? "border-[rgba(237,194,17,0.45)] bg-[rgba(237,194,17,0.16)] text-[#111827] dark:text-[#EDC211]" : "border-line bg-surface text-muted"}`}>
             {roleLabel}
           </span>
         </div>
@@ -233,7 +233,7 @@ export default async function MyWorkPage({ searchParams }: { searchParams: Promi
       </div>
 
       <div className="mt-3 grid gap-3 lg:grid-cols-4">
-        <Card title="Completion & timers" icon={<IconTrendUp className="h-4 w-4 text-emerald-500" />}>
+        <Card title="Completion & timers" icon={<IconTrendUp className="h-4 w-4 text-[#16A34A]" />}>
           <div className="flex items-center justify-between text-xs">
             <span className="font-semibold">Completion rate</span>
             <span className="tabular-nums text-muted">{summary.completionPct}%</span>
@@ -246,7 +246,7 @@ export default async function MyWorkPage({ searchParams }: { searchParams: Promi
             aria-valuemin={0}
             aria-valuemax={100}
           >
-            <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${summary.completionPct}%` }} />
+            <div className="h-full rounded-full transition-all" style={{ width: `${summary.completionPct}%`, backgroundColor: "#16A34A" }} />
           </div>
           <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted">
             <span>{totals.done} of {totals.all} done</span>
@@ -257,7 +257,7 @@ export default async function MyWorkPage({ searchParams }: { searchParams: Promi
               <IconClock className="h-3 w-3" /> {summary.runningNow} timer{summary.runningNow === 1 ? "" : "s"} running
             </span>
             {summary.timerOverdue > 0 && (
-              <span className="inline-flex items-center gap-1 text-red-600 dark:text-red-400">
+              <span className="inline-flex items-center gap-1 text-[#EF4444]">
                 <IconAlarmClock className="h-3 w-3" /> {summary.timerOverdue} timer overdue
               </span>
             )}
@@ -286,7 +286,7 @@ export default async function MyWorkPage({ searchParams }: { searchParams: Promi
           <div className="flex flex-col gap-1">
             {summary.perMember.length === 0 && <Empty>No open tasks.</Empty>}
             {summary.perMember.map((m) => (
-              <StatBar key={m.userId} label={m.name} value={m.count} max={Math.max(1, ...summary.perMember.map((x) => x.count))} color="#3b82f6" />
+              <StatBar key={m.userId} label={m.name} value={m.count} max={Math.max(1, ...summary.perMember.map((x) => x.count))} color="#708AF4" />
             ))}
           </div>
         </Card>
@@ -326,7 +326,7 @@ export default async function MyWorkPage({ searchParams }: { searchParams: Promi
 
           <Card
             title={`Overdue (${overdue.length})`}
-            icon={<IconAlarmClock className="h-4 w-4 text-red-500" />}
+            icon={<IconAlarmClock className="h-4 w-4 text-[#EF4444]" />}
           >
             {overdue.length === 0 ? <Empty>Nothing overdue — nice.</Empty> : <ul className="flex flex-col gap-1">{overdue.map(row)}</ul>}
           </Card>
@@ -339,9 +339,9 @@ export default async function MyWorkPage({ searchParams }: { searchParams: Promi
               <ul className="scroll-thin flex max-h-44 flex-col gap-1 overflow-y-auto overscroll-contain">
                 {recent.map((a) => (
                   <li key={a.id} className="rounded border bg-surface px-2 py-1 text-xs border-line">
-                    <span className="font-mono text-slate-500">{taskKey(a.task.project.key, a.task.serial)}</span>{" "}
+                    <span className="font-mono text-muted">{taskKey(a.task.project.key, a.task.serial)}</span>{" "}
                     <Link href={`/p/${a.task.projectId}/board?task=${a.taskId}`} className="hover:underline">{a.task.title}</Link>
-                    <span className="text-slate-500"> — {a.actor?.name ?? "system"} · {activityLabel(a)}</span>
+                    <span className="text-muted"> — {a.actor?.name ?? "system"} · {activityLabel(a)}</span>
                   </li>
                 ))}
               </ul>
@@ -358,7 +358,7 @@ export default async function MyWorkPage({ searchParams }: { searchParams: Promi
               <div className="flex flex-wrap gap-2">
                 {accessibleProjects.filter((p: any) => !p.isCompleted).map((p: any) => (
                   <Link key={p.id} href={`/p/${p.id}/board`} className="tt-card px-3 py-2 text-sm transition-shadow hover:shadow">
-                    <span className="font-mono text-xs text-slate-500">{p.key}</span> {p.name}
+                    <span className="font-mono text-xs text-muted">{p.key}</span> {p.name}
                   </Link>
                 ))}
               </div>
@@ -370,7 +370,7 @@ export default async function MyWorkPage({ searchParams }: { searchParams: Promi
               <div className="flex flex-wrap gap-2">
                 {accessibleProjects.filter((p: any) => p.isCompleted).map((p: any) => (
                   <Link key={p.id} href={`/p/${p.id}/board`} className="tt-card px-3 py-2 text-sm transition-shadow hover:shadow">
-                    <span className="font-mono text-xs text-slate-500">{p.key}</span> {p.name}
+                    <span className="font-mono text-xs text-muted">{p.key}</span> {p.name}
                   </Link>
                 ))}
               </div>

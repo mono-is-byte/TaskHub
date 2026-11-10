@@ -19,7 +19,7 @@ interface RTask {
   startDate: string | null; endDate: string | null;
 }
 
-const SECTION = "rounded border bg-white p-3 dark:border-slate-800 dark:bg-slate-900";
+const SECTION = "tt-card p-3";
 
 export default function ReportsPage() {
   const params = useParams<{ id: string }>();
@@ -103,51 +103,51 @@ export default function ReportsPage() {
 
   return (
     <div>
-      <div className="mb-3 flex items-center gap-2">
-        <h1 className="text-lg font-bold">Reports — {lookups.project.key}</h1>
-        <span className="text-xs text-slate-500">{lookups.project.name}</span>
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <h1 className="tt-title">Reports — {lookups.project.key}</h1>
+        <span className="text-xs text-muted">{lookups.project.name}</span>
         <button onClick={downloadPdf} disabled={pdfBusy} className="tt-btn ml-auto" title="Download this report as PDF">
           <IconDownload className="h-3.5 w-3.5" /> Download PDF{pdfBusy ? "…" : ""}
         </button>
       </div>
       <div className="grid gap-3 lg:grid-cols-2">
       <section className={SECTION}>
-        <h3 className="mb-2 font-bold">Status distribution</h3>
-        {loading && tasks.length === 0 && <p className="text-xs text-slate-500">Loading…</p>}
-        {error && <p className="text-xs text-red-600" role="alert">Could not load tasks: {error}</p>}
+        <h3 className="mb-2 text-sm font-semibold">Status distribution</h3>
+        {loading && tasks.length === 0 && <p className="text-xs text-muted">Loading…</p>}
+        {error && <p className="text-xs text-[#EF4444]" role="alert">Could not load tasks: {error}</p>}
         {statusDist.map((s) => <StatBar key={s.name} label={s.name} value={s.count} max={Math.max(1, ...statusDist.map((x) => x.count))} color={s.color} />)}
       </section>
 
       <section className={SECTION}>
-        <h3 className="mb-2 font-bold">Open tasks per assignee</h3>
-        {perAssignee.map(([name, v]) => <StatBar key={name} label={`${name} (${v.hrs}h)`} value={v.n} max={maxV} color="#3b82f6" />)}
+        <h3 className="mb-2 text-sm font-semibold">Open tasks per assignee</h3>
+        {perAssignee.map(([name, v]) => <StatBar key={name} label={`${name} (${v.hrs}h)`} value={v.n} max={maxV} color="#708AF4" />)}
       </section>
 
       <section className={SECTION} aria-labelledby="qa-queue-heading">
         <div className="mb-2 flex flex-wrap items-baseline gap-x-2">
-          <h3 id="qa-queue-heading" className="font-bold">QA Queue — In Testing per Tester</h3>
-          <span className="text-xs text-slate-500">
+          <h3 id="qa-queue-heading" className="text-sm font-semibold">QA Queue — In Testing per Tester</h3>
+          <span className="text-xs text-muted">
             {qaSize} task{qaSize === 1 ? "" : "s"} · {qaGroups.length} tester{qaGroups.length === 1 ? "" : "s"}
           </span>
         </div>
-        {loading && tasks.length === 0 && <p className="text-xs text-slate-500">Loading…</p>}
+        {loading && tasks.length === 0 && <p className="text-xs text-muted">Loading…</p>}
         {error && (
-          <p className="text-xs text-red-600" role="alert">
+          <p className="text-xs text-[#EF4444]" role="alert">
             Could not load the QA queue: {error}{" "}
             <button onClick={() => refresh()} className="underline">Retry</button>
           </p>
         )}
         {!error && !(loading && tasks.length === 0) && qaGroups.length === 0 && (
-          <p className="text-xs text-slate-500">Nothing is in testing right now.</p>
+          <p className="text-xs text-muted">Nothing is in testing right now.</p>
         )}
         <ul className="flex flex-col gap-2">
           {qaGroups.map((g) => (
-            <li key={g.tester} className="rounded border border-slate-200 p-2 dark:border-slate-800">
-              <StatBar label={g.tester} value={g.count} max={qaMax} color="#a855f7" />
+            <li key={g.tester} className="rounded-md border border-line p-2">
+              <StatBar label={g.tester} value={g.count} max={qaMax} color="#A855F7" />
               <ul className="mt-1 flex flex-col gap-0.5 text-xs">
                 {g.tasks.map((t) => (
                   <li key={t.id} className="flex items-center gap-1">
-                    <span className="font-mono text-slate-500">{t.key}</span>
+                    <span className="font-mono text-muted">{t.key}</span>
                     <span className="truncate">{t.title}</span>
                   </li>
                 ))}
@@ -158,14 +158,14 @@ export default function ReportsPage() {
       </section>
 
       <section className={SECTION}>
-        <h3 className="mb-2 font-bold">Estimate vs actual</h3>
-        <StatBar label={`Estimated`} value={estVsActual.est} max={Math.max(estVsActual.est, estVsActual.logged, 1)} color="#3b82f6" />
-        <StatBar label={`Logged`} value={estVsActual.logged} max={Math.max(estVsActual.est, estVsActual.logged, 1)} color="#22c55e" />
-        <StatBar label={`Unestimated R&D`} value={estVsActual.rd} max={Math.max(estVsActual.est, estVsActual.logged, estVsActual.rd, 1)} color="#f59e0b" />
-        <h3 className="mb-1 mt-3 font-bold">Overdue ({overdue.length})</h3>
+        <h3 className="mb-2 text-sm font-semibold">Estimate vs actual</h3>
+        <StatBar label={`Estimated`} value={estVsActual.est} max={Math.max(estVsActual.est, estVsActual.logged, 1)} color="#708AF4" />
+        <StatBar label={`Logged`} value={estVsActual.logged} max={Math.max(estVsActual.est, estVsActual.logged, 1)} color="#16A34A" />
+        <StatBar label={`Unestimated R&D`} value={estVsActual.rd} max={Math.max(estVsActual.est, estVsActual.logged, estVsActual.rd, 1)} color="#EDC211" />
+        <h3 className="mb-1 mt-3 text-sm font-semibold">Overdue ({overdue.length})</h3>
         <ul className="flex max-h-40 flex-col gap-1 overflow-auto text-xs">
           {overdue.map((t) => (
-            <li key={t.id}><span className="font-mono text-slate-500">{t.key}</span> {t.title} <span className="text-red-600">due {t.endDate?.slice(0, 10)}</span></li>
+            <li key={t.id}><span className="font-mono text-muted">{t.key}</span> {t.title} <span className="text-[#EF4444]">due {t.endDate?.slice(0, 10)}</span></li>
           ))}
         </ul>
       </section>

@@ -180,19 +180,17 @@ function useCellCommit(onCommit: (value: unknown) => Promise<unknown>) {
 }
 
 function CellStatus({ status }: { status: "" | "saving" | "saved" | "error" }) {
-  if (!status) return null;
-  if (status === "saving") return <span className="ml-1 text-[10px] text-slate-400" title="Saving…">…</span>;
-  if (status === "saved") return <span className="ml-1 inline-flex align-middle text-green-600 dark:text-green-400" title="Saved"><IconCheck className="h-3 w-3" /></span>;
-  return <span className="ml-1 inline-flex align-middle text-red-600 dark:text-red-400" title="Save failed — the cell was reverted"><IconWarning className="h-3 w-3" /></span>;
+  if (status === "saving") return <span className="ml-1 text-[10px] text-muted" title="Saving…">…</span>;
+  return null;
 }
 
 /** The little lock that marks computed/system columns as read-only. */
 function LockMark() {
-  return <span className="ml-1 inline-flex align-middle text-slate-400"><IconLock className="h-3 w-3" /></span>;
+  return <span className="ml-1 inline-flex align-middle text-muted"><IconLock className="h-3 w-3" /></span>;
 }
 
 const cellInput =
-  "w-full min-w-20 rounded border border-transparent bg-transparent p-0.5 hover:border-slate-300 focus:border-slate-400 dark:hover:border-slate-600 dark:focus:border-slate-500";
+  "w-full min-w-20 rounded border border-transparent bg-transparent p-0.5 text-xs leading-snug hover:border-line focus:border-[#708AF4] focus:outline-none";
 
 /** One compact toolbar control so the filter row, export buttons and saved
  *  views all share the same height and border (change request: table redesign). */
@@ -270,18 +268,18 @@ function LongTextCell({
     else setText(value);
   };
   return (
-    <span className="flex items-start">
+    <span className="flex items-center">
       <textarea
         autoFocus
         value={text}
-        rows={2}
+        rows={1}
         onChange={(e) => setText(e.target.value)}
         onBlur={() => finish(true)}
         onKeyDown={(e) => {
           if (e.key === "Escape") { e.preventDefault(); finish(false); }
           if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); (e.target as HTMLElement).blur(); }
         }}
-        className={`${cellInput} min-w-56 resize-none`}
+        className={`${cellInput} min-w-56 h-5 max-h-5 resize-none overflow-hidden py-0`}
         aria-label="Description"
       />
       <CellStatus status={status} />
@@ -294,15 +292,15 @@ function NotesCell({ t }: { t: Task }) {
   const shown = notes.slice(-3);
   const more = notes.length - shown.length;
   const tip = notes.map((n) => `${n.n}. ${noteText(n)}`).join("\n");
-  if (notes.length === 0) return <span className="text-slate-400">—</span>;
+  if (notes.length === 0) return <span className="text-muted">—</span>;
   return (
     <span className="block max-w-60 cursor-pointer" title={tip}>
       {shown.map((n) => (
         <span key={n.id} className="block truncate text-xs">
-          <span className="font-medium text-slate-500">{n.n}.</span> {noteText(n)}
+          <span className="font-medium text-muted">{n.n}.</span> {noteText(n)}
         </span>
       ))}
-      {more > 0 && <span className="text-xs text-slate-400">+{more} more</span>}
+      {more > 0 && <span className="text-xs text-muted">+{more} more</span>}
     </span>
   );
 }
@@ -449,12 +447,15 @@ export default function TablePage() {
   const [drawerId, setDrawerId] = useState<string | null>(searchParams.get("task"));
 
   const [fSearch, setFSearch] = useState("");
-  const [fAssignee, setFAssignee] = useState("");
-  const [fAssignedBy, setFAssignedBy] = useState("");
-  const [fStatus, setFStatus] = useState("");
+  const [fAssigneeIds, setFAssigneeIds] = useState<string[]>([]); // [] = all assignees
+  const [fAssignedByIds, setFAssignedByIds] = useState<string[]>([]); // [] = all assigned by
+  const [fAssignedByNone, setFAssignedByNone] = useState(false);
+  const [fStatusIds, setFStatusIds] = useState<string[]>([]); // [] = all statuses
   const [sort, setSort] = useState<{ key: string; dir: 1 | -1 }>({ key: "serial", dir: 1 });
-  const [groupBy, setGroupBy] = useState("");
+  const [groupBy, setGroupBy] = useState<string[]>([]); // [] = no grouping
   const [hidden, setHidden] = useState<Col[]>(DEFAULT_HIDDEN);
+  const [openFilter, setOpenFilter] = useState<"" | "assignee" | "assignedBy" | "status" | "group" | "columns">("");
+  const [colMenu, setColMenu] = useState<{ x: number; y: number; col: Col } | null>(null);
   const [widths, setWidths] = useState<Record<string, number>>({});
   /** Project whose saved layout is loaded; persistence waits for it so switching
    *  projects never writes one project's columns under another's key. */
@@ -464,14 +465,31 @@ export default function TablePage() {
   const [quickTitle, setQuickTitle] = useState("");
   const [bulkPatch, setBulkPatch] = useState("");
   const [bulkValue, setBulkValue] = useState("");
-  const [views, setViews] = useState<{ id: string; name: string; config: Record<string, string> }[]>([]);
-  const [viewName, setViewName] = useState("");
   const [msg, setMsg] = useState("");
   const [pendingStatus, setPendingStatus] = useState<{ taskId: string; statusId: string; assigneeId: string | null } | null>(null);
+  const filterAreaRef = useRef<HTMLDivElement | null>(null);
+  const colMenuRef = useRef<HTMLDivElement | null>(null);
 
   // Live counting for running timers (item 5).
   const anyRunning = rows.some((t) => t.timerState === "running" || t.timerState === "overdue");
   const now = useTicker(anyRunning);
+
+  useEffect(() => {
+    const onDoc = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (filterAreaRef.current && !filterAreaRef.current.contains(t)) setOpenFilter("");
+      if (colMenuRef.current && !colMenuRef.current.contains(t)) setColMenu(null);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setOpenFilter(""); setColMenu(null); }
+    };
+    document.addEventListener("mousedown", onDoc);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, []);
 
   // Restore this project's saved table layout before paint…
   useBeforePaint(() => {
@@ -497,22 +515,26 @@ export default function TablePage() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
-  useEffect(() => {
-    api<{ views: { id: string; name: string; config: Record<string, string> }[] }>(`/api/projects/${projectId}/views?scope=table`)
-      .then((d) => setViews(d.views)).catch(() => {});
-  }, [projectId]);
+  // Saved views removed.
 
   /** One commit path for every cell: optimistic via the shared store. */
   const commit = useCallback((t: Task, patch: Record<string, unknown>) => patchTask(projectId, t.id, patch), [projectId]);
 
+  const assigneeAll = fAssigneeIds.length === 0;
+  const assignedByAll = fAssignedByIds.length === 0 && !fAssignedByNone;
+  const statusAll = fStatusIds.length === 0;
+  const groupKey = groupBy[0] ?? "";
+
   const sorted = useMemo(() => {
     const arr = rows.filter((t) => {
       if (fSearch && !(`${t.key} ${t.title}`.toLowerCase().includes(fSearch.toLowerCase()))) return false;
-      if (fAssignee && (t.assigneeId ?? "") !== fAssignee) return false;
-      // PHASE 4: "none" = tasks with no recorded assigner.
-      if (fAssignedBy === "none" && t.assignedById) return false;
-      if (fAssignedBy && fAssignedBy !== "none" && (t.assignedById ?? "") !== fAssignedBy) return false;
-      if (fStatus && t.statusId !== fStatus) return false;
+      if (!assigneeAll && !fAssigneeIds.includes(t.assigneeId ?? "__none__")) return false;
+      if (!assignedByAll) {
+        const matchNone = fAssignedByNone && !t.assignedById;
+        const matchId = t.assignedById ? fAssignedByIds.includes(t.assignedById) : false;
+        if (!matchNone && !matchId) return false;
+      }
+      if (!statusAll && !fStatusIds.includes(t.statusId)) return false;
       return true;
     });
     const val = (t: Task, k: string): string | number => {
@@ -548,22 +570,22 @@ export default function TablePage() {
       return (va < vb ? -1 : va > vb ? 1 : 0) * sort.dir;
     });
     return arr;
-  }, [rows, sort, fSearch, fAssignee, fAssignedBy, fStatus, lookups]);
+  }, [rows, sort, fSearch, fAssigneeIds, fAssignedByIds, fAssignedByNone, fStatusIds, lookups, assigneeAll, assignedByAll, statusAll]);
 
   const grouped = useMemo(() => {
-    if (!groupBy) return [{ name: "", items: sorted }];
+    if (!groupKey) return [{ name: "", items: sorted }];
     const map = new Map<string, Task[]>();
     for (const t of sorted) {
       const name =
-        groupBy === "epic" ? (t.epic?.name ?? "(no epic)") :
-        groupBy === "assignee" ? (t.assignee?.name ?? "(unassigned)") :
-        groupBy === "status" ? t.status.name : "";
+        groupKey === "epic" ? (t.epic?.name ?? "(no epic)") :
+        groupKey === "assignee" ? (t.assignee?.name ?? "(unassigned)") :
+        groupKey === "status" ? t.status.name : "";
       const arr = map.get(name) ?? [];
       arr.push(t);
       map.set(name, arr);
     }
     return [...map.entries()].map(([name, items]) => ({ name, items }));
-  }, [sorted, groupBy]);
+  }, [sorted, groupKey]);
 
   function toggleSort(key: string) {
     setSort((s) => (s.key === key ? { key, dir: s.dir === 1 ? -1 : 1 } : { key, dir: 1 }));
@@ -746,7 +768,7 @@ export default function TablePage() {
               {t.key}
             </span>
           );
-        case "estDays": return <span className="text-slate-500" title="Computed from est. hours — read-only">{t.estDays ?? "—"}<LockMark /></span>;
+        case "estDays": return <span className="text-muted" title="Computed from est. hours — read-only">{t.estDays ?? "—"}<LockMark /></span>;
         case "devTime": case "testTime": case "totalTime": {
           const live = liveStageTimes(t, now);
           const ms = c === "devTime" ? live.developmentMs : c === "testTime" ? live.testingMs : live.totalMs;
@@ -756,23 +778,23 @@ export default function TablePage() {
               ? "Testing time — tracked in the In Testing stage"
               : "Total time — development + testing";
           return (
-            <span className="tabular-nums text-slate-500" title={`${label} (read-only)`}>
+            <span className="tabular-nums text-muted" title={`${label} (read-only)`}>
               {ms > 0 ? fmtDur(ms) : "—"}<LockMark />
             </span>
           );
         }
-        case "createdAt": return <span className="text-slate-500" title="Created — read-only">{new Date(t.createdAt).toLocaleDateString()}<LockMark /></span>;
-        case "updatedAt": return <span className="text-slate-500" title="Last updated — read-only">{new Date(t.updatedAt).toLocaleDateString()}<LockMark /></span>;
+        case "createdAt": return <span className="text-muted" title="Created — read-only">{new Date(t.createdAt).toLocaleDateString()}<LockMark /></span>;
+        case "updatedAt": return <span className="text-muted" title="Last updated — read-only">{new Date(t.updatedAt).toLocaleDateString()}<LockMark /></span>;
         case "assignedBy":
           // PHASE 4: server-owned snapshot ("assigned by whom", newest change).
           // Soft-deleted assigners stay visible and are marked "(removed)";
           // a task whose assignment predates the feature shows "—".
           return (
-            <span className="text-slate-500" title={t.assignedAt
+            <span className="text-muted" title={t.assignedAt
               ? `Assigned ${new Date(t.assignedAt).toLocaleString()} — read-only`
               : "No recorded assignment — read-only"}>
               {t.assignedBy ? `${t.assignedBy.name}${t.assignedBy.deletedAt ? " (removed)" : ""}` : "—"}
-              {t.assignedAt ? <span className="ml-1 text-slate-400">{new Date(t.assignedAt).toLocaleDateString()}</span> : null}
+              {t.assignedAt ? <span className="ml-1 text-muted">{new Date(t.assignedAt).toLocaleDateString()}</span> : null}
               <LockMark />
             </span>
           );
@@ -833,7 +855,7 @@ export default function TablePage() {
           const vis = f.roleVisibility?.[m.roleIds[0] ?? ""] ?? "editable";
           const cfVal = t.customValues?.[f.id];
           if (vis === "hidden") return null;
-          if (vis === "readonly") return <span className="text-slate-500" title="Read-only">{String(cfVal ?? "—")}<LockMark /></span>;
+          if (vis === "readonly") return <span className="text-muted" title="Read-only">{String(cfVal ?? "—")}<LockMark /></span>;
           const cfSet = (v: unknown) =>
             commit(t, { customValues: { ...(t.customValues ?? {}), [f.id]: v } });
           return (
@@ -860,57 +882,194 @@ export default function TablePage() {
     ? (lookups.customFields.find((f) => f.id === c.slice(3))?.name ?? "Custom")
     : headers[c as BaseCol];
 
-  // Change request (table export): the Excel download mirrors the current view,
-  // so the four active filters travel with it. No filters = the full project
-  // sheet, which is the file the import expects back.
+  // Export: when exactly one selection is active, include it (server expects single values); "all"/multiple treated as no filter for export.
   const exportQuery = (() => {
     const q = new URLSearchParams();
     if (fSearch.trim()) q.set("q", fSearch.trim());
-    if (fAssignee) q.set("assignee", fAssignee);
-    if (fAssignedBy) q.set("assignedBy", fAssignedBy);
-    if (fStatus) q.set("status", fStatus);
+    if (fAssigneeIds.length === 1) q.set("assignee", fAssigneeIds[0]);
+    if (!assignedByAll) {
+      if (fAssignedByNone && fAssignedByIds.length === 0) q.set("assignedBy", "none");
+      else if (!fAssignedByNone && fAssignedByIds.length === 1) q.set("assignedBy", fAssignedByIds[0]);
+    }
+    if (fStatusIds.length === 1) q.set("status", fStatusIds[0]);
     const s = q.toString();
     return s ? `&${s}` : "";
   })();
 
   return (
     <div>
-      <div className="mb-2 flex flex-wrap items-center gap-1.5 text-xs">
+      <div ref={filterAreaRef} className="mb-2 flex flex-wrap items-center gap-1.5 text-xs">
         <input id="table-search" value={fSearch} onChange={(e) => setFSearch(e.target.value)} placeholder="Search tasks… ( / to focus )"
           className={`${fieldCls} w-56`} />
-        <select value={fAssignee} onChange={(e) => setFAssignee(e.target.value)} className={`${fieldCls} max-w-56`}>
-          <option value="">All assignees</option>
-          {lookups.members.map((x) => <option key={x.userId} value={x.userId}>{userOptionLabel(x)}</option>)}
-        </select>
-        <select value={fAssignedBy} onChange={(e) => setFAssignedBy(e.target.value)} className={`${fieldCls} max-w-56`}
-          title="Show only tasks assigned by a given person">
-          <option value="">All assigned by</option>
-          <option value="none">— (no recorded assigner)</option>
-          {lookups.members.map((x) => <option key={x.userId} value={x.userId}>{userOptionLabel(x)}</option>)}
-        </select>
-        <select value={fStatus} onChange={(e) => setFStatus(e.target.value)} className={fieldCls}>
-          <option value="">All statuses</option>
-          {lookups.statuses.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-        </select>
-        <select value={groupBy} onChange={(e) => setGroupBy(e.target.value)} className={fieldCls}>
-          <option value="">No grouping</option>
-          <option value="epic">Group: Epic</option>
-          <option value="assignee">Group: Assignee</option>
-          <option value="status">Group: Status</option>
-        </select>
-        <select
-          value="" onChange={(e) => { if (e.target.value) setHidden((h) => h.includes(e.target.value as Col) ? h : [...h, e.target.value as Col]); }}
-          className={fieldCls}>
-          <option value="">Hide column…</option>
-          {visible.filter((c) => !ALWAYS_VISIBLE.includes(c)).map((c) => <option key={c} value={c}>{headerOf(c)}</option>)}
-        </select>
-        <select
-          value="" onChange={(e) => { if (e.target.value) setHidden((h) => h.filter((c) => c !== e.target.value as Col)); }}
-          className={fieldCls}>
-          <option value="">Show column…</option>
-          {hidden.map((c) => <option key={c} value={c}>{headerOf(c)}</option>)}
-        </select>
-        {hidden.length > 0 && <button onClick={() => setHidden([])} className="tt-btn">Show all</button>}
+
+        {(() => {
+          const toggle = (k: typeof openFilter) => setOpenFilter((cur) => (cur === k ? "" : k));
+          const panel = "absolute left-0 top-full z-30 mt-1 w-64 rounded-md border border-line bg-surface p-2 shadow-lg";
+          const row = "flex w-full items-center gap-2 rounded px-2 py-1 text-left hover:bg-[var(--row-hover)]";
+          const box = "h-3.5 w-3.5 accent-[#708AF4]";
+          const assigneeLabel = assigneeAll ? "All assignees" : `${fAssigneeIds.length} selected`;
+          const assignedByLabel = assignedByAll ? "All assigned by" : `${fAssignedByIds.length + (fAssignedByNone ? 1 : 0)} selected`;
+          const statusLabel = statusAll ? "All statuses" : `${fStatusIds.length} selected`;
+          const groupLabel = groupBy.length === 0 ? "No grouping" : groupBy.length === 1 ? `Group: ${groupBy[0] === "epic" ? "Epic" : groupBy[0] === "assignee" ? "Assignee" : "Status"}` : `${groupBy.length} groups`;
+
+          const toggleAssignee = (id: string) => {
+            setFAssigneeIds((cur) => {
+              if (cur.length === 0) return [id]; // from all -> only this
+              return cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
+            });
+          };
+          const toggleAssignedBy = (id: string) => {
+            if (id === "none") {
+              if (assignedByAll) { setFAssignedByIds([]); setFAssignedByNone(true); return; }
+              setFAssignedByNone((v) => !v);
+              return;
+            }
+            setFAssignedByIds((cur) => {
+              if (assignedByAll) { setFAssignedByNone(false); return [id]; }
+              return cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
+            });
+          };
+          const toggleStatus = (id: string) => {
+            setFStatusIds((cur) => {
+              if (cur.length === 0) return [id];
+              return cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
+            });
+          };
+          const toggleGroup = (k: string) => {
+            if (k === "") { setGroupBy([]); return; }
+            setGroupBy((cur) => cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k]);
+          };
+
+          return (
+            <>
+              <div className="relative">
+                <button type="button" className="tt-btn" onClick={() => toggle("assignee")}>{assigneeLabel}</button>
+                {openFilter === "assignee" && (
+                  <div className={panel}>
+                    <button type="button" className={`${row} font-medium`} onClick={() => setFAssigneeIds([])}>
+                      <input type="checkbox" readOnly checked={assigneeAll} className={box} />
+                      <span>All assignees</span>
+                    </button>
+                    <div className="my-1 border-t border-line" />
+                    <div className="max-h-60 space-y-0.5 overflow-auto">
+                      {lookups.members.map((x) => (
+                        <button key={x.userId} type="button" className={row} onClick={() => toggleAssignee(x.userId)}>
+                          <input type="checkbox" readOnly checked={!assigneeAll && fAssigneeIds.includes(x.userId)} className={box} />
+                          <span className="truncate" title={userOptionLabel(x)}>{userOptionLabel(x)}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="relative">
+                <button type="button" className="tt-btn" onClick={() => toggle("assignedBy")} title="Show only tasks assigned by a given person">{assignedByLabel}</button>
+                {openFilter === "assignedBy" && (
+                  <div className={panel}>
+                    <button type="button" className={`${row} font-medium`} onClick={() => { setFAssignedByIds([]); setFAssignedByNone(false); }}>
+                      <input type="checkbox" readOnly checked={assignedByAll} className={box} />
+                      <span>All assigned by</span>
+                    </button>
+                    <div className="my-1 border-t border-line" />
+                    <div className="max-h-60 space-y-0.5 overflow-auto">
+                      <button type="button" className={row} onClick={() => toggleAssignedBy("none")}>
+                        <input type="checkbox" readOnly checked={!assignedByAll && fAssignedByNone} className={box} />
+                        <span>— (no recorded assigner)</span>
+                      </button>
+                      {lookups.members.map((x) => (
+                        <button key={x.userId} type="button" className={row} onClick={() => toggleAssignedBy(x.userId)}>
+                          <input type="checkbox" readOnly checked={!assignedByAll && fAssignedByIds.includes(x.userId)} className={box} />
+                          <span className="truncate" title={userOptionLabel(x)}>{userOptionLabel(x)}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="relative">
+                <button type="button" className="tt-btn" onClick={() => toggle("status")}>{statusLabel}</button>
+                {openFilter === "status" && (
+                  <div className={panel}>
+                    <button type="button" className={`${row} font-medium`} onClick={() => setFStatusIds([])}>
+                      <input type="checkbox" readOnly checked={statusAll} className={box} />
+                      <span>All statuses</span>
+                    </button>
+                    <div className="my-1 border-t border-line" />
+                    <div className="max-h-60 space-y-0.5 overflow-auto">
+                      {lookups.statuses.map((s) => (
+                        <button key={s.id} type="button" className={row} onClick={() => toggleStatus(s.id)}>
+                          <input type="checkbox" readOnly checked={!statusAll && fStatusIds.includes(s.id)} className={box} />
+                          <span className="truncate" title={s.name}>{s.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="relative">
+                <button type="button" className="tt-btn" onClick={() => toggle("group")}>{groupLabel}</button>
+                {openFilter === "group" && (
+                  <div className={panel}>
+                    <button type="button" className={`${row} font-medium`} onClick={() => toggleGroup("")}>
+                      <input type="checkbox" readOnly checked={groupBy.length === 0} className={box} />
+                      <span>No grouping</span>
+                    </button>
+                    <div className="my-1 border-t border-line" />
+                    <div className="space-y-0.5">
+                      {([
+                        ["epic", "Group: Epic"],
+                        ["assignee", "Group: Assignee"],
+                        ["status", "Group: Status"],
+                      ] as const).map(([k, label]) => (
+                        <button key={k} type="button" className={row} onClick={() => toggleGroup(k)}>
+                          <input type="checkbox" readOnly checked={groupBy.includes(k)} className={box} />
+                          <span>{label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="relative">
+                <button type="button" className="tt-btn" onClick={() => toggle("columns")}>
+                  Show columns{hidden.length > 0 ? ` (${hidden.length})` : ""}
+                </button>
+                {openFilter === "columns" && (
+                  <div className={panel}>
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-muted">Columns</span>
+                      <button type="button" className="tt-btn px-2 py-0.5 text-[11px]" onClick={() => setHidden([])}>Unhide all</button>
+                    </div>
+                    <div className="max-h-64 space-y-0.5 overflow-auto">
+                      {ALL.filter((c) => !ALWAYS_VISIBLE.includes(c)).map((c) => {
+                        const isHidden = hidden.includes(c);
+                        return (
+                          <button
+                            key={c}
+                            type="button"
+                            className={row}
+                            onClick={() => setHidden((h) => isHidden ? h.filter((x) => x !== c) : [...h, c])}
+                            title={isHidden ? `Unhide ${headerOf(c)}` : `Hide ${headerOf(c)}`}
+                          >
+                            <input type="checkbox" readOnly checked={isHidden} className={box} />
+                            <span className="truncate" title={headerOf(c)}>{headerOf(c)}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {ALL.filter((c) => !ALWAYS_VISIBLE.includes(c)).length === 0 && (
+                      <p className="text-xs text-muted">No hideable columns.</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </>
+          );
+        })()}
       </div>
 
       <div className="mb-2 flex flex-wrap items-center gap-1.5 text-xs">
@@ -955,8 +1114,8 @@ export default function TablePage() {
       </div>
 
       {selected.size > 0 && (
-        <div className="mb-2 flex flex-wrap items-center gap-1.5 rounded-md bg-indigo-50 p-1.5 text-xs dark:bg-indigo-950">
-          <span className="font-medium">{selected.size} selected</span>
+        <div className="mb-2 flex flex-wrap items-center gap-1.5 rounded-md border border-[rgba(112,138,244,0.3)] bg-[rgba(112,138,244,0.12)] p-2 text-xs">
+          <span className="font-medium text-[var(--text)]">{selected.size} selected</span>
           <select value={bulkPatch} onChange={(e) => setBulkPatch(e.target.value)} className={fieldCls}>
             <option value="">Set field…</option>
             <option value="statusId">Status</option>
@@ -987,30 +1146,7 @@ export default function TablePage() {
         </div>
       )}
 
-      <div className="mb-2 flex flex-wrap items-center gap-1.5 text-xs">
-        <input value={viewName} onChange={(e) => setViewName(e.target.value)} placeholder="Save current filters as…"
-          className={`${fieldCls} w-56`} />
-        <button
-          onClick={async () => {
-            if (!viewName.trim()) return;
-            await api(`/api/projects/${projectId}/views`, {
-              method: "POST",
-              body: JSON.stringify({ name: viewName, scope: "table", config: { fSearch, fAssignee, fAssignedBy, fStatus } }),
-            });
-            setViewName("");
-            api<{ views: { id: string; name: string; config: Record<string, string> }[] }>(`/api/projects/${projectId}/views?scope=table`).then((d) => setViews(d.views));
-          }}
-          className="tt-btn">Save view</button>
-        {views.map((v) => (
-          <button key={v.id}
-            onClick={() => {
-              setFSearch(v.config.fSearch ?? "");
-              setFAssignee(v.config.fAssignee ?? ""); setFAssignedBy(v.config.fAssignedBy ?? "");
-              setFStatus(v.config.fStatus ?? "");
-            }}
-            className="tt-btn" title={`Apply saved view “${v.name}”`}>{v.name}</button>
-        ))}
-      </div>
+      {/* Saved views removed */}
 
       <div className="tt-card overflow-hidden">
         <div className="max-h-[70vh] overflow-auto">
@@ -1026,16 +1162,22 @@ export default function TablePage() {
                 {visible.map((c) => (
                   <th key={c}
                     onClick={() => toggleSort(c)}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      setOpenFilter("");
+                      setColMenu({ x: e.clientX, y: e.clientY, col: c });
+                    }}
                     data-num={RIGHT_COLS.has(c) ? "1" : undefined}
-                    className="group sticky top-0 z-10 cursor-pointer whitespace-nowrap border-b border-line bg-surface px-2 py-1.5 text-left text-[11px] font-semibold uppercase tracking-wide text-muted hover:bg-line/40"
+                    title={ALWAYS_VISIBLE.includes(c) ? headerOf(c) : "Right-click to hide column"}
+                    className="group sticky top-0 z-10 cursor-pointer whitespace-nowrap border-b border-line bg-surface px-2 py-1.5 text-left text-[11px] font-semibold uppercase tracking-wide text-muted hover:bg-[var(--row-hover)]"
                     style={widths[c] ? { width: widths[c], minWidth: widths[c] } : undefined}>
                     {headerOf(c)}{sort.key === c ? (sort.dir === 1 ? " ▲" : " ▼") : ""}
-                    {RO_COLS.has(c) && <span className="ml-1 inline-flex align-middle text-slate-400" title="Read-only column"><IconLock className="h-3 w-3" /></span>}
+                    {RO_COLS.has(c) && <span className="ml-1 inline-flex align-middle text-muted" title="Read-only column"><IconLock className="h-3 w-3" /></span>}
                     <span
                       onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); startResize(c, e); }}
                       onClick={(e) => e.stopPropagation()}
                       title="Drag to resize"
-                      className="ml-1 inline-block h-3 w-1 cursor-col-resize align-middle text-slate-300 hover:text-slate-600 dark:text-slate-600 dark:hover:text-slate-300"
+                      className="ml-1 inline-block h-3 w-1 cursor-col-resize align-middle text-[var(--line-strong)] hover:text-[#708AF4]"
                     >|</span>
                   </th>
                 ))}
@@ -1061,9 +1203,31 @@ export default function TablePage() {
         </div>
       </div>
       <p className="mt-2 text-[11px] text-muted">
-        Click a key to open details. Row colour = status, ● = priority, <IconLock className="inline h-3 w-3 align-text-bottom" /> = read-only.
+        Click a key to open details. Right-click a column header to hide it (use “Show columns” to unhide). Row colour = status, ● = priority, <IconLock className="inline h-3 w-3 align-text-bottom" /> = read-only.
         Edits save on blur/Enter, cancel on Esc, and sync to the board, timeline and drawer instantly.
       </p>
+
+      {colMenu && (
+        <div
+          ref={colMenuRef}
+          className="fixed z-50 min-w-44 rounded-md border border-line bg-surface p-1 text-xs shadow-lg"
+          style={{ left: colMenu.x, top: colMenu.y }}
+        >
+          <button
+            type="button"
+            className={`flex w-full items-center rounded px-2 py-1.5 text-left hover:bg-[var(--row-hover)] ${ALWAYS_VISIBLE.includes(colMenu.col) ? "cursor-not-allowed text-muted" : ""}`}
+            disabled={ALWAYS_VISIBLE.includes(colMenu.col)}
+            onClick={() => {
+              if (!ALWAYS_VISIBLE.includes(colMenu.col)) {
+                setHidden((h) => (h.includes(colMenu.col) ? h : [...h, colMenu.col]));
+              }
+              setColMenu(null);
+            }}
+          >
+            Hide column
+          </button>
+        </div>
+      )}
 
       <TaskDrawer projectId={projectId} taskId={drawerId} lookups={lookups}
         onClose={() => setDrawerId(null)} onChanged={() => refreshTasks(projectId)} />

@@ -80,17 +80,17 @@ export default function WorkloadPage() {
   return (
     <div>
       <h2 className="mb-1 text-lg font-bold">Workload</h2>
-      <p className="mb-2 text-xs text-slate-500">
+      <p className="mb-2 text-xs text-muted">
         Planned hours vs capacity per person per week (Mon–Sun). Undated tasks count toward every overlapping week shown;
         tasks without dates land in the current week. Overload is highlighted.
       </p>
-      <div className="overflow-auto rounded border bg-white text-xs dark:border-slate-800 dark:bg-slate-900">
+      <div className="tt-card overflow-auto text-xs">
         <table className="w-full border-collapse">
-          <thead className="bg-slate-50 dark:bg-slate-800">
+          <thead className="bg-[var(--row-hover)] text-left text-[11px] uppercase tracking-wide text-muted">
             <tr>
-              <th className="p-2 text-left">Person</th>
+              <th className="border-b border-line p-2 font-semibold">Person</th>
               {weeks.map((w) => (
-                <th key={w.start.toISOString()} className="p-2 text-left">
+                <th key={w.start.toISOString()} className="border-b border-line p-2 font-semibold">
                   {w.start.toISOString().slice(0, 10)} → {w.end.toISOString().slice(0, 10)}
                 </th>
               ))}
@@ -98,19 +98,19 @@ export default function WorkloadPage() {
           </thead>
           <tbody>
             {rows.map(({ mem, cells, total }) => (
-              <tr key={mem.userId} className="border-t dark:border-slate-800">
+              <tr key={mem.userId} className="border-t border-line">
                 <td className="p-2 font-semibold">
                   {mem.name}
                   {!mem.isMember && <span className="ml-1 rounded bg-line px-1 text-[10px] font-normal text-muted" title="Assigned to work in this project without project membership">not a member</span>}
-                  <br /><span className="font-normal text-slate-500">{total} active task(s)</span>
+                  <br /><span className="font-normal text-muted">{total} active task(s)</span>
                 </td>
                 {cells.map((c, i) => (
-                  <td key={i} className={`p-2 ${c.over ? "bg-red-100 font-bold text-red-800 dark:bg-red-950 dark:text-red-200" : ""}`}>
+                  <td key={i} className={`p-2 ${c.over ? "bg-[rgba(239,68,68,0.12)] font-semibold text-[#EF4444]" : ""}`}>
                     {c.planned}h / {c.cap}h{c.over && (
                       <span className="ml-1 inline-flex items-center gap-0.5 align-middle" title="Planned hours exceed the capacity for this week">
                         <IconWarning className="h-3 w-3" /> OVER
                       </span>
-                    )} <span className="text-slate-500">({c.n})</span>
+                    )} <span className="text-muted">({c.n})</span>
                   </td>
                 ))}
               </tr>

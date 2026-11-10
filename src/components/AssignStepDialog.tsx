@@ -36,10 +36,10 @@ export default function AssignStepDialog({ lookups, statusId, currentAssigneeId,
         key={m.userId}
         onClick={() => setPicked(m.userId === picked ? null : m.userId)}
         title={label}
-        className={`flex w-full items-center gap-2 rounded border px-2 py-1.5 text-left text-sm transition ${
+        className={`flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left text-sm transition-colors ${
           picked === m.userId
-            ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950"
-            : "hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
+            ? "border-[#708AF4] bg-[rgba(112,138,244,0.12)]"
+            : "border-line hover:bg-[var(--row-hover)]"
         }`}
       >
         <Avatar name={m.name} url={m.avatarUrl} size={20} />
@@ -50,7 +50,7 @@ export default function AssignStepDialog({ lookups, statusId, currentAssigneeId,
           </span>
         )}
         {m.userId === currentAssigneeId && (
-          <span className="shrink-0 text-[10px] text-slate-400">(current)</span>
+          <span className="shrink-0 text-[10px] text-muted">(current)</span>
         )}
       </button>
     );
@@ -61,13 +61,13 @@ export default function AssignStepDialog({ lookups, statusId, currentAssigneeId,
       <div
         role="dialog"
         aria-label="Assign to"
-        className="w-full max-w-sm rounded-lg border bg-white p-4 shadow-xl dark:border-slate-700 dark:bg-slate-900"
+        className="glass-strong w-full max-w-sm rounded-xl p-4 shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
         <h4 className="mb-1 font-semibold">
           Move to {status?.name ?? "status"} — assign to…
         </h4>
-        <p className="mb-3 text-xs text-slate-500">
+        <p className="mb-3 text-xs text-muted">
           {suggested.length > 0
             ? "Members holding a role this status suggests are shown first."
             : "Pick a user, or skip to move the task without changing its assignee."}
@@ -76,21 +76,21 @@ export default function AssignStepDialog({ lookups, statusId, currentAssigneeId,
         <div className="mb-2 max-h-60 space-y-1 overflow-auto">
           {suggested.map((m) => row(m, true))}
           {others.length > 0 && suggested.length > 0 && (
-            <p className="pt-1 text-[10px] uppercase tracking-wide text-slate-400">Other users</p>
+            <p className="pt-1 text-[10px] uppercase tracking-wide text-muted">Other users</p>
           )}
           {others.map((m) => row(m, false))}
           {suggested.length === 0 && others.length === 0 && (
-            <p className="text-xs text-slate-400">No users available.</p>
+            <p className="text-xs text-muted">No users available.</p>
           )}
         </div>
 
         <div className="flex justify-end gap-2">
-          <button onClick={onCancel} className="rounded border px-3 py-1 text-sm dark:border-slate-700">
+          <button onClick={onCancel} className="tt-btn text-sm">
             Cancel
           </button>
           <button
             onClick={() => onConfirm(picked === currentAssigneeId ? null : picked)}
-            className="rounded bg-indigo-600 px-3 py-1 text-sm font-semibold text-white"
+            className="rounded-md bg-[#708AF4] px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-[#5A76E8]"
           >
             {picked ? "Move & assign" : "Skip — just move"}
           </button>

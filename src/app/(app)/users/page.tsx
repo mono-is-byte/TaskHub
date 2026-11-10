@@ -41,7 +41,7 @@ interface U {
 }
 interface UserProjectRow { projectId: string; key: string; name: string; openCount?: number; doneCount?: number }
 
-const inp = "rounded border p-1 text-xs dark:border-slate-700 dark:bg-slate-800";
+const inp = "rounded border p-1 text-xs dark:border-line dark:bg-slate-800";
 const btn = "rounded border px-2 py-0.5 text-xs disabled:opacity-50";
 
 export default function UsersPage() {
@@ -228,13 +228,13 @@ export default function UsersPage() {
           <MobileTopBar />
           <h1 className="text-2xl font-bold">Users</h1>
         </div>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-muted">
           {isAdmin
             ? "Add and edit users and set their designation (a role from Roles & Permissions — labels only, never grants permissions)."
             : "You can edit the name and designation of users in the projects you manage."}
         </p>
         {isAdmin && (
-          <button onClick={() => setShowAdd((v) => !v)} className="ml-auto inline-flex items-center gap-1 rounded bg-indigo-600 px-3 py-1 text-sm font-semibold text-white">
+          <button onClick={() => setShowAdd((v) => !v)} className="ml-auto inline-flex items-center gap-1 rounded bg-[#708AF4] px-3 py-1 text-sm font-semibold text-white">
             <IconPlus className="h-4 w-4" /> Add user
           </button>
         )}
@@ -279,13 +279,13 @@ export default function UsersPage() {
             </select>
           </label>
           <label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={addForm.isSuperAdmin} onChange={(e) => setAddForm({ ...addForm, isSuperAdmin: e.target.checked })} /> Super Admin</label>
-          <button disabled={busy === "create"} className="rounded bg-indigo-600 px-3 py-1 text-sm font-semibold text-white disabled:opacity-50">Create user</button>
+          <button disabled={busy === "create"} className="rounded bg-[#708AF4] px-3 py-1 text-sm font-semibold text-white disabled:opacity-50">Create user</button>
         </form>
       )}
 
       <div className="tt-card overflow-auto text-sm">
         <table className="w-full">
-          <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800">
+          <thead className="bg-[var(--row-hover)] text-left text-xs uppercase tracking-wide text-muted dark:bg-slate-800">
             <tr>
               <th className="p-2">User</th>
               <th className="p-2">Designation</th>
@@ -295,7 +295,7 @@ export default function UsersPage() {
           </thead>
           <tbody>
             {users.map((u) => (
-              <tr key={u.id} className={`border-t align-top dark:border-slate-800 ${u.active ? "" : "opacity-50"}`}>
+              <tr key={u.id} className={`border-t align-top dark:border-line ${u.active ? "" : "opacity-50"}`}>
                 <td className="p-2">
                   <div className="flex items-center gap-2">
                     <Avatar name={u.name} url={u.avatarUrl} size={32} />
@@ -308,7 +308,7 @@ export default function UsersPage() {
                         {u.name}{" "}
                         <span className="font-normal text-muted">- {u.designationName ?? "No designation"}</span>
                       </div>
-                      <div className="flex flex-wrap items-center gap-1 text-xs text-slate-500">
+                      <div className="flex flex-wrap items-center gap-1 text-xs text-muted">
                         {u.isSuperAdmin && <span className="rounded bg-purple-100 px-1 text-[10px] dark:bg-purple-950">admin</span>}
                         {u.mustChangePassword && <span className="rounded bg-amber-100 px-1 text-[10px] dark:bg-amber-950">temp-pw</span>}
                         {!u.active && <span className="rounded bg-red-100 px-1 text-[10px] dark:bg-red-950">inactive</span>}
@@ -375,19 +375,19 @@ export default function UsersPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setEditing(null)}>
           <div role="dialog" aria-label={`Edit ${editing.name}`} className="glass-strong w-full max-w-md rounded-lg border border-line p-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="mb-3 font-semibold">Edit user — {editing.name}</h3>
-            <label className="mb-2 block text-xs text-slate-500">Name
+            <label className="mb-2 block text-xs text-muted">Name
               <input value={editName} onChange={(e) => setEditName(e.target.value)} className={`${inp} mt-0.5 block w-full`} />
             </label>
-            <label className="mb-3 block text-xs text-slate-500">Email {!isAdmin && "(Admin only)"}
+            <label className="mb-3 block text-xs text-muted">Email {!isAdmin && "(Admin only)"}
               <input value={editEmail} onChange={(e) => setEditEmail(e.target.value)} disabled={!isAdmin} className={`${inp} mt-0.5 block w-full disabled:opacity-60`} />
             </label>
-            <label className="mb-3 block text-xs text-slate-500">Gender
+            <label className="mb-3 block text-xs text-muted">Gender
               <select value={editGender} onChange={(e) => setEditGender(e.target.value)} className={`${inp} mt-0.5 block w-full`}>
                 <option value="">— not set —</option>
                 {GENDERS.map((g) => <option key={g} value={g}>{g}</option>)}
               </select>
             </label>
-            <label className="mb-3 block text-xs text-slate-500">Designation (a role — labels only)
+            <label className="mb-3 block text-xs text-muted">Designation (a role — labels only)
               <select
                 value={editDesignation}
                 onChange={(e) => setEditDesignation(e.target.value)}
@@ -405,19 +405,19 @@ export default function UsersPage() {
                 ))}
               </select>
             </label>
-            <div className="mb-4 flex items-center gap-2 text-xs text-slate-500">
+            <div className="mb-4 flex items-center gap-2 text-xs text-muted">
               <Avatar name={editing.name} url={editing.avatarUrl} size={40} />
-              <label className={`cursor-pointer rounded border px-2 py-1 dark:border-slate-700 ${busy === editing.id + "av" ? "opacity-50" : ""}`}>
+              <label className={`cursor-pointer rounded border px-2 py-1 dark:border-line ${busy === editing.id + "av" ? "opacity-50" : ""}`}>
                 Upload avatar (jpg/jpeg, ≤ 2 MB)
                 <input type="file" accept=".jpg,.jpeg,image/jpeg" className="hidden" disabled={busy === editing.id + "av"}
                   onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadAvatar(editing, f); e.target.value = ""; }} />
               </label>
               {editing.avatarUrl && (
-                <button onClick={() => void clearAvatar(editing)} className="rounded border px-2 py-1 text-red-600 dark:border-slate-700 dark:text-red-400">Remove</button>
+                <button onClick={() => void clearAvatar(editing)} className="rounded border px-2 py-1 text-red-600 dark:border-line dark:text-red-400">Remove</button>
               )}
             </div>
             <div className="flex justify-end gap-2">
-              <button onClick={() => setEditing(null)} className="rounded border px-3 py-1 text-sm dark:border-slate-700">Cancel</button>
+              <button onClick={() => setEditing(null)} className="rounded border px-3 py-1 text-sm dark:border-line">Cancel</button>
               <button
                 onClick={() => {
                   const patch: Record<string, unknown> = {};
@@ -429,7 +429,7 @@ export default function UsersPage() {
                   setEditing(null);
                   if (Object.keys(patch).length > 0) void patchUser(editing, patch, "edit");
                 }}
-                className="rounded bg-indigo-600 px-3 py-1 text-sm font-semibold text-white"
+                className="rounded bg-[#708AF4] px-3 py-1 text-sm font-semibold text-white"
               >
                 Save
               </button>
@@ -443,51 +443,51 @@ export default function UsersPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setProjectsOf(null)}>
           <div role="dialog" aria-label={`Projects for ${projectsOf.name}`} className="glass-strong max-h-[85vh] w-full max-w-lg overflow-auto rounded-lg border border-line p-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="mb-1 font-semibold">Projects — {projectsOf.name}</h3>
-            <p className="mb-3 text-xs text-slate-500">Based on the tasks currently assigned to this user.</p>
+            <p className="mb-3 text-xs text-muted">Based on the tasks currently assigned to this user.</p>
 
-            {!projectRows && !projectsErr && <p className="text-sm text-slate-500">Loading…</p>}
+            {!projectRows && !projectsErr && <p className="text-sm text-muted">Loading…</p>}
             {projectsErr && <p className="rounded bg-red-50 p-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">{projectsErr}</p>}
 
             {projectRows && (
               <>
-                <h4 className="mb-1 text-xs font-bold uppercase tracking-wide text-slate-500">
+                <h4 className="mb-1 text-xs font-bold uppercase tracking-wide text-muted">
                   Assigned projects ({projectRows.assigned.length})
                 </h4>
                 <ul className="mb-4 space-y-1 text-sm">
                   {projectRows.assigned.length === 0 && (
-                    <li className="text-xs text-slate-400">No projects with open tasks.</li>
+                    <li className="text-xs text-muted">No projects with open tasks.</li>
                   )}
                   {projectRows.assigned.map((p) => (
                     <li key={p.projectId} className="flex flex-wrap items-baseline gap-2">
                       <Link
                         href={`/p/${p.projectId}/board`}
                         onClick={() => setProjectsOf(null)}
-                        className="text-indigo-600 hover:underline dark:text-indigo-400"
+                        className="text-[#708AF4] hover:underline dark:text-[#708AF4]"
                       >
                         {p.key} — {p.name}
                       </Link>
-                      <span className="text-xs text-slate-500">{p.openCount} open task{p.openCount === 1 ? "" : "s"}</span>
+                      <span className="text-xs text-muted">{p.openCount} open task{p.openCount === 1 ? "" : "s"}</span>
                     </li>
                   ))}
                 </ul>
 
-                <h4 className="mb-1 text-xs font-bold uppercase tracking-wide text-slate-500">
+                <h4 className="mb-1 text-xs font-bold uppercase tracking-wide text-muted">
                   Solved projects ({projectRows.solved.length})
                 </h4>
                 <ul className="space-y-1 text-sm">
                   {projectRows.solved.length === 0 && (
-                    <li className="text-xs text-slate-400">No completed tasks yet.</li>
+                    <li className="text-xs text-muted">No completed tasks yet.</li>
                   )}
                   {projectRows.solved.map((p) => (
                     <li key={p.projectId} className="flex flex-wrap items-baseline gap-2">
                       <Link
                         href={`/p/${p.projectId}/board`}
                         onClick={() => setProjectsOf(null)}
-                        className="text-indigo-600 hover:underline dark:text-indigo-400"
+                        className="text-[#708AF4] hover:underline dark:text-[#708AF4]"
                       >
                         {p.key} — {p.name}
                       </Link>
-                      <span className="text-xs text-slate-500">{p.doneCount} completed task{p.doneCount === 1 ? "" : "s"}</span>
+                      <span className="text-xs text-muted">{p.doneCount} completed task{p.doneCount === 1 ? "" : "s"}</span>
                     </li>
                   ))}
                 </ul>
@@ -495,7 +495,7 @@ export default function UsersPage() {
             )}
 
             <div className="mt-4 flex justify-end">
-              <button onClick={() => setProjectsOf(null)} className="rounded border px-3 py-1 text-sm dark:border-slate-700">Close</button>
+              <button onClick={() => setProjectsOf(null)} className="rounded border px-3 py-1 text-sm dark:border-line">Close</button>
             </div>
           </div>
         </div>

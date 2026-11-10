@@ -32,12 +32,12 @@ export default function ProjectTabs({
             key={slug}
             href={href}
             aria-current={active ? "page" : undefined}
-            className={`rounded px-2 py-1 transition-colors ${
+            className={`rounded-md px-2.5 py-1.5 text-sm transition-colors ${
               active
-                ? "font-semibold text-white shadow-sm"
-                : "text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-800"
+                ? "font-semibold text-[#FFFFFF] shadow-sm"
+                : "text-[var(--text-secondary)] hover:bg-[var(--row-hover)] hover:text-[var(--text)]"
             }`}
-            style={active ? { background: accent } : undefined}
+            style={active ? { background: "#708AF4" } : undefined}
           >
             {label}
           </Link>

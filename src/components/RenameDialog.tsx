@@ -56,7 +56,7 @@ export default function RenameDialog({
           value={value}
           maxLength={maxLength}
           onChange={(e) => setValue(e.target.value)}
-          className="mb-2 w-full rounded border border-line bg-surface px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+          className="mb-2 w-full rounded border border-line bg-surface px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#708AF4]/40"
         />
         {error && <p className="mb-2 text-xs text-red-600 dark:text-red-400">{error}</p>}
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
@@ -66,7 +66,7 @@ export default function RenameDialog({
           <button
             type="submit"
             disabled={busy || !value.trim()}
-            className="w-full rounded bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500 disabled:opacity-50 sm:w-auto"
+            className="w-full rounded-md bg-[#708AF4] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#5A76E8] disabled:opacity-50 sm:w-auto"
           >
             {busy ? "Saving…" : "Save"}
           </button>

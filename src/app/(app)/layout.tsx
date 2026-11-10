@@ -80,12 +80,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           )}
         </nav>
         <div className="sb-foot mt-auto border-t border-line pt-2 text-xs">
-          <div className="sb-user glass-soft mb-1 flex items-center justify-between rounded-lg px-2 py-1.5">
+          <div className="sb-user mb-1 flex items-center justify-between rounded-lg border border-line bg-surface px-2 py-1.5 shadow-sm">
             <span className="flex min-w-0 items-center gap-1.5">
               <Avatar name={user.name} url={user.avatarUrl} size={22} />
               <span className="flex min-w-0 flex-col">
-                <span className="sb-label truncate font-semibold" title={user.email}>{user.name}</span>
-                <span className="sb-label truncate text-[10px] text-muted" title={roleLabel}>{roleLabel}</span>
+                <span className="sb-label truncate font-semibold" style={{ color: "var(--text)" }} title={user.email}>{user.name}</span>
+                <span className="sb-label truncate text-[10px]" style={{ color: "var(--muted)" }} title={roleLabel}>{roleLabel}</span>
               </span>
             </span>
             <NotificationsBell />

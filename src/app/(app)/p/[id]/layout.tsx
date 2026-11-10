@@ -28,7 +28,7 @@ export default async function ProjectLayout({
   const loaded = await loadProject(id, user.id, user.isSuperAdmin);
   if (!loaded) redirect("/no-access");
   const { project, membership } = loaded;
-  const accent = (project.settings.accent as string) || "#4f46e5";
+  const accent = "#708AF4";
   // The badge beside the project name shows who you are HERE — the project role
   // (super admins included) or your designation — instead of the generic
   // synthetic "Super Admin"/"Team member" label. The directory row already
@@ -42,14 +42,14 @@ export default async function ProjectLayout({
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <div className="flex items-center gap-2.5">
           <MobileTopBar />
-          <Link href="/" className="text-sm text-slate-500">← My Work</Link>
+          <Link href="/" className="text-sm text-muted">← My Work</Link>
         </div>
         <h1 className="text-xl font-bold basis-full md:basis-auto">
           <span className="mr-2 font-mono text-sm" style={{ color: accent }}>{project.key}</span>
           {project.name}
         </h1>
         <span
-          className="rounded bg-slate-200 px-2 py-0.5 text-xs dark:bg-slate-800"
+          className="rounded-md border border-line bg-surface px-2 py-0.5 text-xs text-muted"
           title="Your role in this project (falls back to your designation)"
         >
           {viewerRole}

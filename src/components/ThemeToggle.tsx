@@ -64,8 +64,8 @@ export default function ThemeToggle() {
       className="tt-btn h-7 w-7 shrink-0 justify-center p-0 transition duration-150 hover:text-accent active:scale-95"
     >
       {/* Both glyphs are rendered; CSS shows the one matching the current mode. */}
-      <IconMoon className="h-4 w-4 text-slate-600 dark:hidden" />
-      <IconSun className="hidden h-4 w-4 text-amber-500 dark:block" />
+      <IconMoon className="h-4 w-4 text-[var(--muted)] dark:hidden" />
+      <IconSun className="hidden h-4 w-4 text-[#EDC211] dark:block" />
     </button>
   );
 }

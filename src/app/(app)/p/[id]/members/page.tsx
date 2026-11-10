@@ -131,7 +131,7 @@ export default function MembersPage() {
         <p className="w-full text-xs text-muted">
           People with access to this project. A member&apos;s project role and their
           designation from the{" "}
-          <Link href="/users" className="text-indigo-600 underline dark:text-indigo-400">Users page</Link>{" "}
+          <Link href="/users" className="text-[#708AF4] underline">Users page</Link>{" "}
           are shown together in one column — identical labels appear only once.
         </p>
       </div>
@@ -139,9 +139,9 @@ export default function MembersPage() {
       {notice && (
         <p
           role="status"
-          className={`rounded border px-3 py-2 text-xs ${notice.ok
-            ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300"
-            : "border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"}`}
+          className={`rounded-md border px-3 py-2 text-xs ${notice.ok
+            ? "border-[rgba(22,163,74,0.3)] bg-[rgba(22,163,74,0.12)] text-[#16A34A]"
+            : "border-[rgba(239,68,68,0.3)] bg-[rgba(239,68,68,0.12)] text-[#EF4444]"}`}
         >
           {notice.text}
         </p>
@@ -225,7 +225,7 @@ export default function MembersPage() {
                               </span>
                               {!m.active && (
                                 <span
-                                  className="rounded border border-slate-300 px-1 text-[10px] text-muted dark:border-slate-600"
+                                  className="rounded border border-line px-1 text-[10px] text-muted dark:border-slate-600"
                                   title="Account deactivated on the Users page — they cannot sign in"
                                 >
                                   deactivated
@@ -243,7 +243,7 @@ export default function MembersPage() {
                           {roleLabels.map((rn) => (
                             <span
                               key={rn}
-                              className="rounded border border-indigo-300 px-1.5 py-0.5 text-xs text-indigo-700 dark:border-indigo-700 dark:text-indigo-300"
+                              className="rounded-md border border-[rgba(112,138,244,0.4)] bg-[rgba(112,138,244,0.12)] px-1.5 py-0.5 text-xs font-medium text-[#708AF4]"
                               title="Project role, or the designation from the Users page when the member has no project role"
                             >
                               {rn}

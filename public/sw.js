@@ -1,6 +1,6 @@
 /* TaskHub service worker — standards-based PWA updates & caching.
    Generated at build time (scripts/generate-version.mjs). Do not hand-edit. */
-const BUILD_VERSION = "build-1794298075412";
+const BUILD_VERSION = "build-1794304493435";
 const CACHE_PREFIX = "taskhub";
 const CACHE_NAME = CACHE_PREFIX + "-" + BUILD_VERSION;
 const RUNTIME_NAV_CACHE = CACHE_PREFIX + "-nav-" + BUILD_VERSION;

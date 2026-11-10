@@ -130,8 +130,8 @@ export default function SettingsPage() {
   }
 
   const box = "tt-card p-3";
-  const inp = "rounded border p-1 text-xs dark:border-slate-700 dark:bg-slate-800";
-  const btn = "rounded bg-indigo-600 px-2 py-1 text-xs font-semibold text-white";
+  const inp = "rounded border p-1 text-xs dark:border-line bg-surface";
+  const btn = "rounded bg-[#708AF4] px-2 py-1 text-xs font-semibold text-white";
   const canWf = lookups.membership.isSuperAdmin || lookups.membership.perms.manage_workflow === true;
   const canAuto = lookups.membership.isSuperAdmin || lookups.membership.perms.manage_automation === true;
 
@@ -566,18 +566,18 @@ export default function SettingsPage() {
 
   return (
     <div className="grid gap-3 lg:grid-cols-2">
-      <p className="text-xs text-slate-500 lg:col-span-2">{msg}</p>
+      <p className="text-xs text-muted lg:col-span-2">{msg}</p>
 
       {/* Top row: compact General (right) and Transitions (left) cards. On small
           screens General stacks above Transitions. */}
       <div className="grid gap-3 lg:col-span-2 lg:grid-cols-2">
         <section className={`${box} lg:order-2`}>
           <h3 className="mb-1 text-sm font-bold">General</h3>
-          <p className="mb-2 text-[11px] text-slate-500">Project-wide preferences, saved with the button below.</p>
+          <p className="mb-2 text-[11px] text-muted">Project-wide preferences, saved with the button below.</p>
           <div className="flex flex-col gap-3 text-xs">
             <label className="block">
               <span className="font-medium">Working hours per day</span>
-              <span className="mt-0.5 block text-[11px] text-slate-500">
+              <span className="mt-0.5 block text-[11px] text-muted">
                 Estimated days are calculated from estimated hours using this value — e.g. 24 h ≈ 3 days at 8 h/day.
               </span>
               <input
@@ -587,7 +587,7 @@ export default function SettingsPage() {
             </label>
             <label className="block">
               <span className="font-medium">Banner note</span>
-              <span className="mt-0.5 block text-[11px] text-slate-500">Shown to everyone at the top of every page in this project.</span>
+              <span className="mt-0.5 block text-[11px] text-muted">Shown to everyone at the top of every page in this project.</span>
               <textarea
                 value={banner} onChange={(e) => setBanner(e.target.value)} rows={2}
                 placeholder="e.g. Tasks time may change depending on meeting, emergency support"
@@ -596,10 +596,10 @@ export default function SettingsPage() {
             </label>
             <label className="block">
               <span className="font-medium">Accent colour</span>
-              <span className="mt-0.5 block text-[11px] text-slate-500">Used for the project key and active accents.</span>
+              <span className="mt-0.5 block text-[11px] text-muted">Used for the project key and active accents.</span>
               <span className="mt-1 flex items-center gap-2">
                 <input type="color" value={accent} onChange={(e) => setAccent(e.target.value)} aria-label="Accent colour" />
-                <span className="font-mono text-[11px] text-slate-500">{accent.toUpperCase()}</span>
+                <span className="font-mono text-[11px] text-muted">{accent.toUpperCase()}</span>
               </span>
             </label>
             <label className="flex items-start gap-2">
@@ -609,7 +609,7 @@ export default function SettingsPage() {
               />
               <span>
                 <span className="font-medium">Viewers may comment</span>
-                <span className="block text-[11px] text-slate-500">When off, view-only members can read tasks but not comment.</span>
+                <span className="block text-[11px] text-muted">When off, view-only members can read tasks but not comment.</span>
               </span>
             </label>
           </div>
@@ -618,10 +618,10 @@ export default function SettingsPage() {
 
         <section className={`${box} lg:order-1`}>
           <h3 className="mb-1 text-sm font-bold">Transitions (from → to, per role)</h3>
-          <p className="mb-2 text-[11px] text-slate-500">Only transitions listed here are allowed. Empty roles = every project role may use it. Project Manager and Super Admin may move to any status.</p>
+          <p className="mb-2 text-[11px] text-muted">Only transitions listed here are allowed. Empty roles = every project role may use it. Project Manager and Super Admin may move to any status.</p>
           <table className="w-full border-collapse text-xs">
             <thead>
-              <tr className="text-left text-[10px] uppercase tracking-wide text-slate-500">
+              <tr className="text-left text-[10px] uppercase tracking-wide text-muted">
                 <th className="border-b border-line pb-1 font-semibold">From</th>
                 <th className="border-b border-line pb-1 font-semibold">To</th>
                 <th className="border-b border-line pb-1 font-semibold">Allowed roles</th>
@@ -635,7 +635,7 @@ export default function SettingsPage() {
                     <td colSpan={canWf ? 4 : 3} className="border-b border-line py-1.5">
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                         <span className="font-medium">{t.from.name} → {t.to.name}</span>
-                        <span className="text-slate-500">Allowed roles:</span>
+                        <span className="text-muted">Allowed roles:</span>
                         {(wf?.roles ?? []).map((r) => (
                           <label key={r.id} className="flex items-center gap-1 whitespace-nowrap">
                             <input
@@ -651,7 +651,7 @@ export default function SettingsPage() {
                             {r.name}
                           </label>
                         ))}
-                        <span className="text-[10px] text-slate-500">(none = all roles)</span>
+                        <span className="text-[10px] text-muted">(none = all roles)</span>
                         <span className="ml-auto flex shrink-0 gap-1">
                           <button onClick={() => void saveTransitionRoles()} disabled={transBusy} className={`${btn} disabled:opacity-50`}>
                             {transBusy ? "Saving…" : "Save"}
@@ -665,7 +665,7 @@ export default function SettingsPage() {
                   <tr key={t.id}>
                     <td className="border-b border-line py-1 pr-2">{t.from.name}</td>
                     <td className="border-b border-line py-1 pr-2">{t.to.name}</td>
-                    <td className="border-b border-line py-1 pr-2 text-slate-500">{transitionRoleNames(t)}</td>
+                    <td className="border-b border-line py-1 pr-2 text-muted">{transitionRoleNames(t)}</td>
                     {canWf && (
                       <td className="border-b border-line py-1">
                         <span className="flex justify-end gap-1">
@@ -678,7 +678,7 @@ export default function SettingsPage() {
                           </button>
                           <button
                             onClick={() => void deleteTransition(t.id)}
-                            className="rounded border border-line px-1 py-0.5 text-slate-500 hover:bg-line hover:text-red-600"
+                            className="rounded border border-line px-1 py-0.5 text-muted hover:bg-line hover:text-[#EF4444]"
                             title={`Delete ${t.from.name} → ${t.to.name}`}
                             aria-label={`Delete transition ${t.from.name} to ${t.to.name}`}
                           ><IconX className="h-3 w-3" /></button>
@@ -689,15 +689,15 @@ export default function SettingsPage() {
                 )
               ))}
               {(wf?.transitions ?? []).length === 0 && (
-                <tr><td colSpan={canWf ? 4 : 3} className="py-1 text-slate-500">No transitions yet.</td></tr>
+                <tr><td colSpan={canWf ? 4 : 3} className="py-1 text-muted">No transitions yet.</td></tr>
               )}
             </tbody>
           </table>
           {canWf && (
             <div className="mt-2 flex flex-wrap items-center gap-1 text-[11px]">
-              <span className="text-slate-500">Preset flows:</span>
+              <span className="text-muted">Preset flows:</span>
               {flowPresets.length === 0 && (
-                <span className="text-slate-500">add statuses first — presets appear here.</span>
+                <span className="text-muted">add statuses first — presets appear here.</span>
               )}
               {flowPresets.map((p) => {
                 const exists = (wf?.transitions ?? []).some((t) => t.fromId === p.fromId && t.toId === p.toId);
@@ -719,7 +719,7 @@ export default function SettingsPage() {
                   type="button"
                   disabled={transBusy}
                   onClick={() => void addAllFlows()}
-                  className="ml-1 rounded-full border border-indigo-500 px-2 py-0.5 font-medium text-indigo-600 disabled:opacity-40 dark:text-indigo-300"
+                  className="ml-1 rounded-full border border-[#708AF4] px-2 py-0.5 font-medium text-[#708AF4] disabled:opacity-40 "
                 >
                   + Add all missing
                 </button>
@@ -729,21 +729,21 @@ export default function SettingsPage() {
           {canWf && (
             <div className="mt-3 flex flex-wrap items-end gap-2 border-t border-line pt-3 text-xs">
               <label className="flex flex-col gap-0.5">
-                <span className="text-[11px] text-slate-500">From</span>
+                <span className="text-[11px] text-muted">From</span>
                 <select value={newTrans.fromId} onChange={(e) => setNewTrans({ ...newTrans, fromId: e.target.value })} className={inp}>
                   <option value="">From…</option>
                   {(wf?.statuses ?? []).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               </label>
               <label className="flex flex-col gap-0.5">
-                <span className="text-[11px] text-slate-500">To</span>
+                <span className="text-[11px] text-muted">To</span>
                 <select value={newTrans.toId} onChange={(e) => setNewTrans({ ...newTrans, toId: e.target.value })} className={inp}>
                   <option value="">To…</option>
                   {(wf?.statuses ?? []).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               </label>
               <fieldset className="flex min-w-0 flex-col gap-0.5">
-                <legend className="text-[11px] text-slate-500">Allowed roles — none = all roles</legend>
+                <legend className="text-[11px] text-muted">Allowed roles — none = all roles</legend>
                 <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   {(wf?.roles ?? []).map((r) => (
                     <label key={r.id} className="flex items-center gap-1 whitespace-nowrap">
@@ -770,18 +770,18 @@ export default function SettingsPage() {
 
       <section className={box}>
         <h3 className="mb-1 text-sm font-bold">Statuses</h3>
-        <p className="mb-2 text-[11px] text-slate-500">
+        <p className="mb-2 text-[11px] text-muted">
           {canWf
             ? "The only allowed status moves are the Transitions defined in this project — there is no automatic “forward” rule. Project Manager and Super Admin may move to any status. The timer role decides which columns offer Start/Stop (Track), show only the total (Final — Done), or no timer at all (None). Time tracked in the “In Progress” stage becomes Development time, “In Testing” becomes Testing time, and Total time is their sum — renaming those statuses changes which bucket their time lands in."
             : "Read-only — only Admin/PM can edit the workflow."}
         </p>
         <ul className="mb-2 text-xs">
           {(wf?.statuses ?? []).map((s, i) => (
-            <li key={s.id} className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 border-b pb-1 dark:border-slate-800">
+            <li key={s.id} className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 border-b pb-1 dark:border-line">
               <span className="flex w-full items-center gap-1">
                 <span className="inline-block h-2 w-2 rounded-full" style={{ background: s.color }} />
-                {s.name} <span className="text-slate-500">({s.category})</span>
-                <span className="ml-1 text-slate-400">#{i + 1}</span>
+                {s.name} <span className="text-muted">({s.category})</span>
+                <span className="ml-1 text-muted">#{i + 1}</span>
                 {canWf && (
                   <>
                     <button
@@ -799,7 +799,7 @@ export default function SettingsPage() {
                 )}
               </span>
               <span className="flex flex-wrap items-center gap-1 text-[10px]">
-                <span className="text-slate-500">Timer role:</span>
+                <span className="text-muted">Timer role:</span>
                 {canWf ? (
                   <select
                     value={s.timerRole}
@@ -812,20 +812,20 @@ export default function SettingsPage() {
                     <option value="FINAL">Final — Done</option>
                   </select>
                 ) : (
-                  <span className="text-slate-400">{TIMER_ROLE_LABEL[s.timerRole] ?? s.timerRole}</span>
+                  <span className="text-muted">{TIMER_ROLE_LABEL[s.timerRole] ?? s.timerRole}</span>
                 )}
               </span>
               <span className="flex flex-wrap items-center gap-1 text-[10px]">
-                <span className="text-slate-500">Suggest designations:</span>
+                <span className="text-muted">Suggest designations:</span>
                 {(wf?.designationRoleIds?.[s.id] ?? []).map((roleId) => {
                   const name = (wf?.roles ?? []).find((r) => r.id === roleId)?.name ?? "—";
                   return (
-                    <span key={roleId} className="inline-flex items-center gap-1 rounded-full border border-indigo-500 bg-indigo-50 px-2 py-0.5 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-200">
+                    <span key={roleId} className="inline-flex items-center gap-1 rounded-full border border-[#708AF4] bg-[rgba(112,138,244,0.12)] px-2 py-0.5 text-[#708AF4]  ">
                       {name}
                       {canWf && (
                         <button
                           onClick={() => void saveDesignationRoles(s.id, (wf?.designationRoleIds?.[s.id] ?? []).filter((x) => x !== roleId))}
-                          className="text-indigo-500 hover:text-indigo-700 dark:text-indigo-300"
+                          className="text-[#708AF4] hover:text-[#708AF4] "
                           title={`Remove “${name}”`}
                         >×</button>
                       )}
@@ -850,7 +850,7 @@ export default function SettingsPage() {
                   </select>
                 )}
                 {(wf?.designationRoleIds?.[s.id] ?? []).length === 0 && !canWf && (
-                  <span className="text-slate-400">none</span>
+                  <span className="text-muted">none</span>
                 )}
               </span>
             </li>
@@ -858,7 +858,7 @@ export default function SettingsPage() {
         </ul>
         {canWf && (
           <div className="mb-2 flex flex-wrap items-center gap-1 text-[11px]">
-            <span className="text-slate-500">Preset statuses:</span>
+            <span className="text-muted">Preset statuses:</span>
             {STATUS_PRESETS.map((p) => {
               const exists = (wf?.statuses ?? []).some((s) => s.name.toLowerCase() === p.name.toLowerCase());
               return (
@@ -878,7 +878,7 @@ export default function SettingsPage() {
               type="button"
               disabled={statusBusy}
               onClick={() => void addAllStatusPresets()}
-              className="ml-1 rounded-full border border-indigo-500 px-2 py-0.5 font-medium text-indigo-600 disabled:opacity-40 dark:text-indigo-300"
+              className="ml-1 rounded-full border border-[#708AF4] px-2 py-0.5 font-medium text-[#708AF4] disabled:opacity-40 "
             >
               + Add all missing
             </button>
@@ -890,7 +890,7 @@ export default function SettingsPage() {
       <div className="flex flex-col gap-3">
         <section className={box}>
           <h3 className="mb-1 text-sm font-bold">Priorities &amp; issue types</h3>
-          <p className="mb-2 text-[11px] text-slate-500">
+          <p className="mb-2 text-[11px] text-muted">
             {canWf
               ? "Tasks reference these by id — renaming or recolouring updates every task that uses them. Deleting asks where its tasks should move first."
               : "Read-only — only Admin/PM can manage priorities and issue types."}
@@ -899,8 +899,8 @@ export default function SettingsPage() {
             <p
               role="status"
               className={`mb-2 rounded px-2 py-1 text-xs ${lookupMsg.ok
-                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
-                : "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300"}`}
+                ? "bg-[rgba(22,163,74,0.12)] text-[#16A34A]  "
+                : "bg-[rgba(239,68,68,0.12)] text-[#EF4444]  "}`}
             >
               {lookupMsg.text}
             </p>
@@ -942,7 +942,7 @@ export default function SettingsPage() {
                       <span className="flex flex-wrap items-center gap-1.5">
                         <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full border border-line" style={{ background: p.color }} aria-hidden />
                         <span className="font-medium">{p.name}</span>
-                        <span className="text-slate-500" title="Higher level sorts first">level {p.level}</span>
+                        <span className="text-muted" title="Higher level sorts first">level {p.level}</span>
                         {canWf && (
                           <>
                             <button
@@ -953,7 +953,7 @@ export default function SettingsPage() {
                             </button>
                             <button
                               onClick={() => setConfirmLookup({ kind: "priority", id: p.id, name: p.name })}
-                              className="rounded border border-line px-2 py-0.5 text-muted hover:bg-line hover:text-red-600"
+                              className="rounded border border-line px-2 py-0.5 text-muted hover:bg-line hover:text-[#EF4444]"
                               aria-label={`Delete priority ${p.name}`}
                             >
                               Delete
@@ -964,7 +964,7 @@ export default function SettingsPage() {
                     )}
                   </li>
                 ))}
-                {lookups.priorities.length === 0 && <li className="text-slate-500">No priorities yet.</li>}
+                {lookups.priorities.length === 0 && <li className="text-muted">No priorities yet.</li>}
               </ul>
               {canWf && (
                 <div className="flex items-center gap-1 text-xs">
@@ -1029,7 +1029,7 @@ export default function SettingsPage() {
                             </button>
                             <button
                               onClick={() => setConfirmLookup({ kind: "type", id: t.id, name: t.name })}
-                              className="rounded border border-line px-2 py-0.5 text-muted hover:bg-line hover:text-red-600"
+                              className="rounded border border-line px-2 py-0.5 text-muted hover:bg-line hover:text-[#EF4444]"
                               aria-label={`Delete issue type ${t.name}`}
                             >
                               Delete
@@ -1040,7 +1040,7 @@ export default function SettingsPage() {
                     )}
                   </li>
                 ))}
-                {lookups.issueTypes.length === 0 && <li className="text-slate-500">No issue types yet.</li>}
+                {lookups.issueTypes.length === 0 && <li className="text-muted">No issue types yet.</li>}
               </ul>
               {canWf && (
                 <div className="flex items-center gap-1 text-xs">
@@ -1064,7 +1064,7 @@ export default function SettingsPage() {
 
         <section className={`${box} lg:flex-1`}>
           <h3 className="mb-1 text-sm font-bold">Automation rules</h3>
-          <p className="mb-2 text-[11px] text-slate-500">
+          <p className="mb-2 text-[11px] text-muted">
             Rules run automatically when a task changes status — assign the task to someone, or notify the assignee or the tester.
           </p>
           <ul className="mb-2 max-h-44 overflow-auto text-xs">
@@ -1074,15 +1074,15 @@ export default function SettingsPage() {
                   await api(`/api/projects/${projectId}/automation?ruleId=${r.id}`, { method: "PATCH", body: JSON.stringify({ enabled: e.target.checked }) });
                   loadAll();
                 }} />
-                <span className="min-w-0 flex-1"><strong>{r.name}</strong> <span className="text-slate-500">— {describeRule(r)}</span></span>
-                <button onClick={() => setConfirmRule({ id: r.id, name: r.name })} className="rounded border px-1 py-0.5 text-muted hover:bg-line hover:text-red-600" title={`Delete rule “${r.name}”`} aria-label={`Delete rule ${r.name}`}><IconTrash className="h-3 w-3" /></button>
+                <span className="min-w-0 flex-1"><strong>{r.name}</strong> <span className="text-muted">— {describeRule(r)}</span></span>
+                <button onClick={() => setConfirmRule({ id: r.id, name: r.name })} className="rounded border px-1 py-0.5 text-muted hover:bg-line hover:text-[#EF4444]" title={`Delete rule “${r.name}”`} aria-label={`Delete rule ${r.name}`}><IconTrash className="h-3 w-3" /></button>
               </li>
             ))}
-            {rules.length === 0 && <li className="text-slate-500">No automation rules yet.</li>}
+            {rules.length === 0 && <li className="text-muted">No automation rules yet.</li>}
           </ul>
           {canAuto && (
             <div className="flex flex-wrap items-center gap-1 text-xs">
-              <span className="text-slate-500">When a task status changes</span>
+              <span className="text-muted">When a task status changes</span>
               <select value={newRule.toStatusId} onChange={(e) => setNewRule({ ...newRule, toStatusId: e.target.value })} className={inp}>
                 <option value="">to any status</option>
                 {lookups.statuses.map((s) => <option key={s.id} value={s.id}>to “{s.name}”</option>)}
@@ -1157,7 +1157,7 @@ export default function SettingsPage() {
             <h4 className="mb-1 text-sm font-bold">
               Move tasks off “{pendingLookup.name}”
             </h4>
-            <p className="mb-2 text-xs text-slate-500">{pendingLookup.message}</p>
+            <p className="mb-2 text-xs text-muted">{pendingLookup.message}</p>
             <label className="mb-3 block text-xs">
               Move its tasks to
               <select value={moveLookupTo} onChange={(e) => setMoveLookupTo(e.target.value)} className={`${inp} ml-1`}>
@@ -1189,7 +1189,7 @@ export default function SettingsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="glass-strong w-96 rounded border border-line p-4 shadow-lg">
             <h4 className="mb-1 text-sm font-bold">Remove column “{pendingDelete.name}”?</h4>
-            <p className="mb-2 text-xs text-slate-500">{pendingDelete.message}</p>
+            <p className="mb-2 text-xs text-muted">{pendingDelete.message}</p>
             <label className="mb-3 block text-xs">
               Move its tasks to
               <select value={moveTo} onChange={(e) => setMoveTo(e.target.value)} className={`${inp} ml-1`}>
@@ -1199,7 +1199,7 @@ export default function SettingsPage() {
               </select>
             </label>
             <div className="flex justify-end gap-2">
-              <button onClick={() => setPendingDelete(null)} className="rounded border px-2 py-1 text-xs dark:border-slate-700">Cancel</button>
+              <button onClick={() => setPendingDelete(null)} className="rounded border px-2 py-1 text-xs dark:border-line">Cancel</button>
               <button
                 onClick={async () => {
                   if (!moveTo) return;

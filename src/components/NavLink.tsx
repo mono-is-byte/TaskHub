@@ -36,10 +36,10 @@ export default function NavLink({
       aria-current={active ? "page" : undefined}
       aria-label={title}
       title={title}
-      className={`inline-flex items-center gap-1.5 rounded px-2 py-1 transition-colors ${
+      className={`inline-flex items-center gap-2 rounded-md px-2.5 py-1.5 text-sm transition-colors ${
         active
-          ? "bg-accent/10 font-semibold text-accent"
-          : "hover:bg-line"
+          ? "bg-[rgba(112,138,244,0.12)] font-semibold text-[#708AF4]"
+          : "text-[var(--text-secondary)] hover:bg-[var(--row-hover)] hover:text-[var(--text)]"
       } ${className}`}
     >
       {children}

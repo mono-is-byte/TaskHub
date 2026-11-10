@@ -6,9 +6,9 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
       <body>
         <div style={{ minHeight: "50vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: 32, textAlign: "center" }}>
           <h1 style={{ fontSize: 24, fontWeight: 700 }}>Something went wrong</h1>
-          <p style={{ fontSize: 14, color: "#64748b" }}>{error?.message ?? "An unexpected error occurred."}</p>
-          {error?.digest && <p style={{ fontSize: 12, color: "#64748b", fontFamily: "monospace" }}>Digest: {error.digest}</p>}
-          <button onClick={() => reset()} style={{ background: "#4f46e5", color: "#fff", padding: "8px 16px", borderRadius: 8, border: 0, cursor: "pointer" }}>
+          <p style={{ fontSize: 14, color: "#6B7280" }}>{error?.message ?? "An unexpected error occurred."}</p>
+          {error?.digest && <p style={{ fontSize: 12, color: "#6B7280", fontFamily: "monospace" }}>Digest: {error.digest}</p>}
+          <button onClick={() => reset()} style={{ background: "#708AF4", color: "#FFFFFF", padding: "8px 16px", borderRadius: 8, border: 0, cursor: "pointer", fontWeight: 600 }}>
             Try again
           </button>
         </div>

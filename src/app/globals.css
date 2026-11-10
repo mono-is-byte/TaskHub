@@ -2,101 +2,172 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* ── Theme tokens (Phase 5) ─────────────────────────────────────────────
-   CSS variables flip on <html class="dark">; `@theme inline` maps them to
-   utilities (bg-surface, border-line, text-muted, bg-accent …) so themed
-   components read from one place instead of repeating dark: variants. */
+/* ── TaskHub Design System (visual redesign) ─────────────────────────────
+   Brand colors are fixed and must remain exact:
+   - #708AF4 (brand primary, main interactive)
+   - #EDC211 (brand accent, selected highlights / secondary accents)
+   All other colors are HEX values defined centrally below. */
 :root {
-  color-scheme: light dark;
-  --text: #0f172a;
-  --accent: #4f46e5;
-  --accent-strong: #4338ca;
-  --canvas: #f5f7fb;
-  --surface: #ffffff;
-  /* Phase 6: the opaque surface for dense content (tables, forms, modals)
-     where a translucent pane would hurt readability. */
-  --surface-strong: #ffffff;
-  --surface-popover: #ffffff;
-  --row-selected-bg: color-mix(in srgb, var(--accent) 12%, transparent);
-  --row-selected-bar: var(--accent);
-  --line: #e2e8f0;
-  --muted: #64748b;
-  /* ── Liquid Glass tokens (Phase 4) ──────────────────────────────────
-     A frosted "glass" material built from four layers: a translucent tint,
-     a soft outer drop shadow (depth), an inner top highlight (the bevel that
-     makes glass read as glass) and a backdrop blur. All glass classes below
-     read these, so light/dark and the accessibility fallbacks change in one
-     place. */
+  color-scheme: light;
+
+  /* Brand (exact HEX) */
+  --brand-primary: #708AF4;
+  --brand-accent: #EDC211;
+
+  /* Core surfaces */
+  --canvas: #F3F5FB;
+  --surface: #FFFFFF;
+  --surface-strong: #FFFFFF;
+  --surface-popover: #FFFFFF;
+  --surface-elevated: #FFFFFF;
+  --sidebar-bg: #F8FAFF;
+
+  /* Text */
+  --text: #111827;
+  --text-secondary: #374151;
+  --muted: #6B7280;
+  --text-on-primary: #FFFFFF;
+  --text-on-accent: #111827;
+
+  /* Borders & effects */
+  --line: #E5E7EB;
+  --line-strong: #D1D5DB;
+  --focus-ring: #708AF4;
+  --shadow-sm: 0 1px 2px 0 rgba(17, 24, 39, 0.06);
+  --shadow-md: 0 8px 24px -12px rgba(17, 24, 39, 0.18);
+  --shadow-lg: 0 16px 40px -16px rgba(17, 24, 39, 0.22);
+
+  /* Interactive */
+  --accent: #708AF4;
+  --accent-strong: #5A76E8;
+  --accent-soft: rgba(112, 138, 244, 0.12);
+  --accent-soft-hover: rgba(112, 138, 244, 0.18);
+  --accent-border: rgba(112, 138, 244, 0.35);
+  --highlight-soft: rgba(237, 194, 17, 0.16);
+  --highlight-border: rgba(237, 194, 17, 0.45);
+
+  /* Semantic */
+  --success: #16A34A;
+  --success-soft: rgba(22, 163, 74, 0.12);
+  --warning: #EDC211;
+  --warning-soft: rgba(237, 194, 17, 0.16);
+  --error: #EF4444;
+  --error-soft: rgba(239, 68, 68, 0.12);
+  --info: #708AF4;
+  --info-soft: rgba(112, 138, 244, 0.12);
+
+  /* Status (preserve meanings) */
+  --status-todo: #64748B;
+  --status-inprogress: #708AF4;
+  --status-completed: #16A34A;
+  --status-devdone: #EDC211;
+  --status-testing: #A855F7;
+  --status-reopen: #EF4444;
+
+  /* Priority */
+  --priority-critical: #EF4444;
+  --priority-high: #F97316;
+  --priority-medium: #EDC211;
+  --priority-low: #708AF4;
+
+  /* Calendar day classification (preserve existing meanings) */
+  --hol-weekly: #FFF2F2;
+  --hol-holiday: #FBDADA;
+  --hol-exception: #FFF2CC;
+
+  /* Table/row helpers */
+  --row-hover: #F8FAFF;
+  --row-selected-bg: rgba(112, 138, 244, 0.12);
+  --row-selected-bar: #708AF4;
+
+  /* Compatibility tokens used by existing classes/markup */
   --glass-tint: 255 255 255;
-  --glass-alpha: 0.55;
-  --glass-alpha-strong: 0.72;
-  --glass-alpha-soft: 0.4;
-  --glass-border: rgb(255 255 255 / 0.65);
-  --glass-highlight: rgb(255 255 255 / 0.85);
-  --glass-blur: 16px;
-  --glass-saturate: 1.4;
-  --glass-shadow: 0 10px 30px -12px rgb(15 23 42 / 0.28);
-  --glass-shadow-lg: 0 24px 60px -24px rgb(15 23 42 / 0.45);
-  --glass-inner: inset 0 1px 0 rgb(255 255 255 / 0.7);
-  /* Aurora canvas: the coloured light the glass refracts. */
-  --aurora-1: #c7d2fe;
-  --aurora-2: #a5f3fc;
-  --aurora-3: #fbcfe8;
-  --aurora-4: #fde68a;
-  /* Calendar day classification (Change request: Calendar + design system).
-     Fri/Sat (weekly holiday) background is exactly #fff2f2 (change request:
-     Members redesign & calendar colour); configured holidays and working-day
-     exceptions keep their own colours below. */
-  --hol-weekly: #fff2f2;
-  --hol-holiday: #fbdada;
-  --hol-exception: #fff2cc;
+  --glass-alpha: 1;
+  --glass-alpha-strong: 1;
+  --glass-alpha-soft: 1;
+  --glass-border: #E5E7EB;
+  --glass-highlight: #FFFFFF;
+  --glass-blur: 0px;
+  --glass-saturate: 1;
+  --glass-shadow: var(--shadow-md);
+  --glass-shadow-lg: var(--shadow-lg);
+  --glass-inner: inset 0 0 0 transparent;
 }
 
-/* Base backgrounds follow system theme before the .dark class is applied,
-   reducing white/dark flashes during PWA startup (splash handoff). */
 html {
-  background-color: #f5f7fb;
+  background-color: #F3F5FB;
 }
+
 @media (prefers-color-scheme: dark) {
   html {
-    background-color: #020617;
+    background-color: #0B1220;
   }
 }
 
 .dark {
   color-scheme: dark;
-  --text: #e2e8f0;
-  --accent: #818cf8;
-  --accent-strong: #a5b4fc;
-  --canvas: #020617;
-  --surface: #0f172a;
-  --surface-strong: #0f172a;
-  --surface-popover: #0f172a;
-  --row-selected-bg: color-mix(in srgb, var(--accent) 14%, transparent);
-  --row-selected-bar: var(--accent);
-  --line: #1e293b;
-  --muted: #94a3b8;
-  /* Liquid Glass, dark: a light-on-dark tint keeps the panes luminous while
-     the borders/highlights turn down so they read as glass, not plastic. */
-  --glass-tint: 148 163 184;
-  --glass-alpha: 0.12;
-  --glass-alpha-strong: 0.2;
-  --glass-alpha-soft: 0.08;
-  --glass-border: rgb(148 163 184 / 0.22);
-  --glass-highlight: rgb(226 232 240 / 0.16);
-  --glass-shadow: 0 12px 34px -14px rgb(2 6 23 / 0.7);
-  --glass-shadow-lg: 0 28px 70px -26px rgb(2 6 23 / 0.85);
-  --glass-inner: inset 0 1px 0 rgb(226 232 240 / 0.12);
-  --aurora-1: #312e81;
-  --aurora-2: #0e7490;
-  --aurora-3: #831843;
-  --aurora-4: #78350f;
-  /* Dark equivalents keep the same hues at a readable contrast — #fff2f2 on a
-     near-black canvas would destroy contrast, so the weekly holiday keeps its
-     existing dark tint. */
-  --hol-weekly: #3b1d1d;
-  --hol-holiday: #4c2020;
-  --hol-exception: #40340f;
+
+  /* Core surfaces */
+  --canvas: #0B1220;
+  --surface: #111827;
+  --surface-strong: #111827;
+  --surface-popover: #162033;
+  --surface-elevated: #162033;
+  --sidebar-bg: #0F172A;
+
+  /* Text */
+  --text: #F9FAFB;
+  --text-secondary: #E5E7EB;
+  --muted: #9CA3AF;
+  --text-on-primary: #FFFFFF;
+  --text-on-accent: #111827;
+
+  /* Borders & effects */
+  --line: #243041;
+  --line-strong: #334155;
+  --focus-ring: #708AF4;
+  --shadow-sm: 0 1px 2px 0 rgba(2, 6, 23, 0.5);
+  --shadow-md: 0 10px 28px -14px rgba(2, 6, 23, 0.65);
+  --shadow-lg: 0 18px 44px -18px rgba(2, 6, 23, 0.75);
+
+  /* Interactive */
+  --accent: #708AF4;
+  --accent-strong: #8EA3F7;
+  --accent-soft: rgba(112, 138, 244, 0.18);
+  --accent-soft-hover: rgba(112, 138, 244, 0.26);
+  --accent-border: rgba(112, 138, 244, 0.45);
+  --highlight-soft: rgba(237, 194, 17, 0.18);
+  --highlight-border: rgba(237, 194, 17, 0.5);
+
+  /* Semantic */
+  --success: #16A34A;
+  --success-soft: rgba(22, 163, 74, 0.18);
+  --warning: #EDC211;
+  --warning-soft: rgba(237, 194, 17, 0.2);
+  --error: #EF4444;
+  --error-soft: rgba(239, 68, 68, 0.18);
+  --info: #708AF4;
+  --info-soft: rgba(112, 138, 244, 0.18);
+
+  /* Calendar day classification (dark-readable equivalents) */
+  --hol-weekly: #3B1D1D;
+  --hol-holiday: #4C2020;
+  --hol-exception: #40340F;
+
+  --row-hover: #162033;
+  --row-selected-bg: rgba(112, 138, 244, 0.18);
+  --row-selected-bar: #708AF4;
+
+  /* Compatibility tokens */
+  --glass-tint: 17 24 39;
+  --glass-alpha: 1;
+  --glass-alpha-strong: 1;
+  --glass-alpha-soft: 1;
+  --glass-border: #243041;
+  --glass-highlight: #111827;
+  --glass-shadow: var(--shadow-md);
+  --glass-shadow-lg: var(--shadow-lg);
+  --glass-inner: inset 0 0 0 transparent;
 }
 
 @theme inline {
@@ -112,285 +183,273 @@ html {
   --color-hol-exception: var(--hol-exception);
 }
 
-/* ── Base polish ─────────────────────────────────────────────────────── */
+/* ── Base ─────────────────────────────────────────────────────────────── */
 html {
   font-family: "Inter", "Noto Sans Bengali", ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Liquid Glass canvas: a soft "aurora" of colour the glass panes refract.
-   It is fixed so it never scrolls with content, and it degrades to the plain
-   canvas colour when the user prefers less transparency. */
 body {
   background-color: var(--canvas);
-  background-image:
-    radial-gradient(60rem 40rem at 8% -8%, color-mix(in srgb, var(--aurora-1) 55%, transparent), transparent 70%),
-    radial-gradient(50rem 34rem at 100% 0%, color-mix(in srgb, var(--aurora-2) 45%, transparent), transparent 68%),
-    radial-gradient(46rem 34rem at 88% 100%, color-mix(in srgb, var(--aurora-3) 45%, transparent), transparent 70%),
-    radial-gradient(52rem 30rem at 0% 100%, color-mix(in srgb, var(--aurora-4) 40%, transparent), transparent 72%);
-  background-attachment: fixed;
-}
-
-/* ── Liquid Glass material (Phase 4) ──────────────────────────────────────
-   One frosted-surface recipe, applied through a few named classes:
-     .glass         base translucent pane (header bars, toolbars)
-     .glass-soft    quieter tint for large backgrounds / nested strips
-     .glass-strong  higher opacity for menus, dialogs and popovers
-   Layering: `backdrop-filter` blurs whatever is behind, the inner highlight
-   imitates the light-catching bevel, and the outer shadow lifts the pane off
-   the aurora canvas. */
-.glass {
-  background: rgb(var(--glass-tint) / var(--glass-alpha));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-}
-
-.glass-soft {
-  background: rgb(var(--glass-tint) / var(--glass-alpha-soft));
-  -webkit-backdrop-filter: blur(10px) saturate(var(--glass-saturate));
-  backdrop-filter: blur(10px) saturate(var(--glass-saturate));
-}
-
-.glass-strong {
-  background: rgb(var(--glass-tint) / var(--glass-alpha-strong));
-  -webkit-backdrop-filter: blur(22px) saturate(var(--glass-saturate));
-  backdrop-filter: blur(22px) saturate(var(--glass-saturate));
-}
-
-/* Fallbacks ────────────────────────────────────────────────────────────────
-   1) No backdrop-filter support → solid, fully opaque surfaces so text keeps
-      its contrast instead of sitting on an un-blurred translucent tint.
-   2) The user asked for less transparency → same solid fallback.
-   The class list includes every themed component rule that reads the glass
-   tokens, so the whole app flips together. */
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .glass, .glass-soft, .glass-strong,
-  .tt-card, .tt-kpi, .tt-btn, .tt-btn:hover, .tt-input, .sb-toggle {
-    background: var(--surface);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
-  .tt-card, .tt-kpi, .tt-btn, .tt-input, .sb-toggle { border-color: var(--line); }
-  .tt-card::before { display: none; }
-  body { background-image: none; }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .glass, .glass-soft, .glass-strong,
-  .tt-card, .tt-kpi, .tt-btn, .tt-btn:hover, .tt-input, .sb-toggle {
-    background: var(--surface);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
-  .tt-card, .tt-kpi, .tt-btn, .tt-input, .sb-toggle { border-color: var(--line); }
-  .tt-card::before { display: none; }
-  body { background-image: none; }
+  color: var(--text);
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--accent) 25%, transparent);
+  background: rgba(112, 138, 244, 0.28);
+  color: var(--text);
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
-/* Themed thin scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--line) transparent;
+  scrollbar-color: var(--line-strong) transparent;
 }
 *::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 *::-webkit-scrollbar-thumb {
-  background: var(--line);
-  border-radius: 4px;
+  background: var(--line-strong);
+  border-radius: 9999px;
 }
 
-/* Shared control styles (used by theme toggle + PDF buttons) */
+/* ── Surfaces (kept class names for compatibility) ────────────────────── */
+.glass,
+.glass-soft,
+.glass-strong,
+.tt-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.glass {
+  box-shadow: var(--shadow-sm);
+}
+.glass-soft {
+  background: var(--surface-elevated);
+  box-shadow: none;
+}
+.glass-strong {
+  background: var(--surface-popover);
+  box-shadow: var(--shadow-md);
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────── */
 .tt-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
+  justify-content: center;
+  gap: 0.375rem;
   border-radius: 0.5rem;
-  border: 1px solid var(--glass-border);
-  background: rgb(var(--glass-tint) / var(--glass-alpha-strong));
-  -webkit-backdrop-filter: blur(8px) saturate(var(--glass-saturate));
-  backdrop-filter: blur(8px) saturate(var(--glass-saturate));
-  box-shadow: var(--glass-inner);
-  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  padding: 0.375rem 0.625rem;
   font-size: 0.75rem;
-  transition: background-color 0.15s, color 0.15s, box-shadow 0.15s;
+  font-weight: 500;
+  line-height: 1rem;
+  box-shadow: var(--shadow-sm);
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
 }
-.tt-btn:hover {
-  background: color-mix(in srgb, var(--accent) 14%, rgb(var(--glass-tint) / var(--glass-alpha-strong)));
+.tt-btn:hover:not(:disabled) {
+  background: var(--row-hover);
+  border-color: var(--line-strong);
 }
-
-/* Phase 6 layout pass: one token-based surface + heading style so pages stop
-   repeating hardcoded white/slate colors (which also fixes dark theme gaps). */
-.tt-card {
-  position: relative;
-  border: 1px solid var(--glass-border);
-  background: rgb(var(--glass-tint) / var(--glass-alpha));
-  border-radius: 0.75rem;
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  box-shadow: var(--glass-inner), var(--glass-shadow);
+.tt-btn:active:not(:disabled) {
+  background: #EEF2FF;
 }
-/* Top-edge sheen shared with the glass surfaces. */
-.tt-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background: linear-gradient(180deg, var(--glass-highlight) 0%, transparent 20%, transparent 100%);
-  opacity: 0.45;
+.dark .tt-btn:active:not(:disabled) {
+  background: #1B2436;
 }
-.tt-title {
-  font-size: 1.125rem;
-  line-height: 1.75rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+.tt-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
-/* Change request (UI design system): one primary button + one input style so
-   Login, the Dashboard and every form share the same look and states. */
 .tt-btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.375rem;
   border-radius: 0.5rem;
-  background: var(--accent);
-  color: #ffffff;
+  border: 1px solid transparent;
+  background: #708AF4;
+  color: #FFFFFF;
   padding: 0.5rem 0.875rem;
   font-size: 0.875rem;
   font-weight: 600;
-  box-shadow: 0 8px 20px -10px color-mix(in srgb, var(--accent) 75%, transparent);
-  transition: background-color 0.15s, opacity 0.15s, box-shadow 0.15s;
+  line-height: 1.25rem;
+  box-shadow: 0 8px 20px -12px rgba(112, 138, 244, 0.7);
+  transition: background-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 .tt-btn-primary:hover:not(:disabled) {
-  background: var(--accent-strong);
-  box-shadow: 0 12px 26px -10px color-mix(in srgb, var(--accent) 80%, transparent);
+  background: #5A76E8;
+  box-shadow: 0 10px 24px -12px rgba(112, 138, 244, 0.75);
+}
+.tt-btn-primary:active:not(:disabled) {
+  transform: translateY(0);
 }
 .tt-btn-primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-.dark .tt-btn-primary {
-  color: #0b1120;
+  box-shadow: none;
 }
 
-/* Change request (table/dashboard toolbars): one compact button size — the
-   same buttons, just smaller, so toolbar rows share a single height. */
-.tt-btn-sm {
-  padding: 0.2rem 0.45rem;
-  font-size: 0.6875rem;
-}
-
-.tt-input {
-  width: 100%;
-  border: 1px solid var(--glass-border);
-  background: rgb(var(--glass-tint) / var(--glass-alpha-strong));
+.tt-btn-accent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
   border-radius: 0.5rem;
-  -webkit-backdrop-filter: blur(8px) saturate(var(--glass-saturate));
-  backdrop-filter: blur(8px) saturate(var(--glass-saturate));
-  box-shadow: var(--glass-inner);
+  border: 1px solid transparent;
+  background: #EDC211;
+  color: #111827;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: filter 0.15s ease, opacity 0.15s ease;
+}
+.tt-btn-accent:hover:not(:disabled) { filter: brightness(0.97); }
+
+.tt-btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: var(--error-soft);
+  color: #B91C1C;
+  padding: 0.375rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.dark .tt-btn-danger { color: #FCA5A5; }
+.tt-btn-danger:hover:not(:disabled) { background: rgba(239, 68, 68, 0.18); }
+
+.tt-btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.6875rem;
+  line-height: 0.95rem;
+  border-radius: 0.375rem;
+}
+
+/* ── Inputs ───────────────────────────────────────────────────────────── */
+.tt-input,
+input.tt-input,
+select.tt-input,
+textarea.tt-input {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 0.5rem;
   padding: 0.5rem 0.625rem;
   font-size: 0.875rem;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  line-height: 1.25rem;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+.tt-input::placeholder { color: var(--muted); opacity: 1; }
+.tt-input:hover:not(:disabled):not(:focus) {
+  border-color: var(--line-strong);
 }
 .tt-input:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+  border-color: #708AF4;
+  box-shadow: 0 0 0 3px rgba(112, 138, 244, 0.22);
+}
+.tt-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #F9FAFB;
+}
+.dark .tt-input:disabled {
+  background: #0F172A;
 }
 
-/* Dashboard / summary cards. */
+/* Generic form controls (consistent with inputs) */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+select,
+textarea {
+  accent-color: #708AF4;
+}
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: #708AF4;
+}
+
+/* ── Cards / KPI ──────────────────────────────────────────────────────── */
+.tt-card {
+  position: relative;
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-sm);
+}
+.tt-card::before { content: none; }
+
+.tt-title {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--text);
+}
+
 .tt-kpi {
   position: relative;
-  border: 1px solid var(--glass-border);
-  background: rgb(var(--glass-tint) / var(--glass-alpha));
+  border: 1px solid var(--line);
+  background: var(--surface);
   border-radius: 0.75rem;
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  box-shadow: var(--glass-inner), var(--glass-shadow);
-  padding: 0.75rem 0.875rem;
-  transition: box-shadow 0.18s, border-color 0.18s, transform 0.18s;
+  box-shadow: var(--shadow-sm);
+  padding: 0.875rem 1rem;
+  transition: box-shadow 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
 }
 .tt-kpi:hover {
-  border-color: color-mix(in srgb, var(--accent) 35%, var(--glass-border));
-  box-shadow: var(--glass-inner), var(--glass-shadow-lg);
+  border-color: var(--accent-border);
+  box-shadow: var(--shadow-md);
   transform: translateY(-1px);
 }
 
-@keyframes tt-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-.tt-spin {
-  animation: tt-spin 0.8s linear infinite;
-}
+@keyframes tt-spin { to { transform: rotate(360deg); } }
+.tt-spin { animation: tt-spin 0.8s linear infinite; }
 
-.task-row-done {
-  opacity: 0.62;
-}
-.task-row-done td:first-child {
-  text-decoration: line-through;
-}
+.task-row-done { opacity: 0.68; }
+.task-row-done td:first-child { text-decoration: line-through; }
 
-/* ── Task table (change request: table redesign) ────────────────────────
-   border-collapse stays "separate" so the sticky header keeps its bottom
-   border; numeric columns right-align (inputs included); the hover tint is
-   a filter on the cells so it stays visible over the per-status row colour. */
+/* ── Tables ───────────────────────────────────────────────────────────── */
 .tt-table {
   border-collapse: separate;
   border-spacing: 0;
   width: 100%;
 }
 .tt-table th[data-num="1"],
-.tt-table td[data-num="1"] {
-  text-align: right;
-}
-.tt-table td[data-num="1"] input {
-  text-align: right;
-}
-.tt-row > td {
-  transition: filter 0.12s ease;
-}
-.tt-row:hover > td {
-  filter: brightness(0.97);
-}
-.dark .tt-row:hover > td {
-  filter: brightness(1.15);
-}
+.tt-table td[data-num="1"] { text-align: right; }
+.tt-table td[data-num="1"] input { text-align: right; }
+.tt-row > td { transition: background-color 0.12s ease; }
+.tt-row:hover > td { background-color: var(--row-hover); filter: none; }
+.dark .tt-row:hover > td { background-color: var(--row-hover); filter: none; }
 
-/* Item 8 — scrollable history/activity lists (ScrollableList component):
-   subtle bottom fade when there is more to scroll + a thin themed bar. */
+/* Scrollable lists */
 .scroll-thin {
   scrollbar-width: thin;
-  scrollbar-color: var(--line) transparent;
+  scrollbar-color: var(--line-strong) transparent;
 }
 .scroll-fade-bottom {
   -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 18px), transparent 100%);
   mask-image: linear-gradient(to bottom, black calc(100% - 18px), transparent 100%);
 }
-/* When the list is scrolled to the very bottom, drop the fade so the last
-   item isn't dimmed (class toggled by ScrollableList when at bottom). */
 .scroll-fade-bottom.is-bottom {
   -webkit-mask-image: none;
   mask-image: none;
 }
 
-/* ── Collapsible sidebar & mobile drawer (change request: sidebar toggle) ──
-   Expanded/collapsed is one attribute on <html data-sb="…"> (restored before
-   paint by the root layout's inline script), the mobile drawer is
-   <html data-sb-mobile="open">. These rules sit outside the Tailwind layers,
-   so they win over the utility classes without !important. */
+/* ── Sidebar & mobile drawer (preserve behavior) ──────────────────────── */
 .sb-toggle {
   position: fixed;
   top: 0.5rem;
@@ -408,33 +467,38 @@ body {
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 .sb-toggle:hover {
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: #708AF4;
+  background: rgba(112, 138, 244, 0.12);
 }
-.sb-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sb-toggle:focus-visible { outline: 2px solid #708AF4; outline-offset: 2px; }
 
-/* Keep original logo colors in both light and dark modes. */
 .sb-toggle img,
-.sb-logo-btn img {
-  filter: none;
-}
+.sb-logo-btn img { filter: none; }
 
-/* Mobile top-bar logo button (MobileTopBar): plain icon mark, no chrome. */
 .sb-logo-btn { display: inline-flex; }
-.sb-logo-btn:hover { color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
-.sb-logo-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sb-logo-btn:hover { color: #708AF4; background: rgba(112, 138, 244, 0.12); }
+.sb-logo-btn:focus-visible { outline: 2px solid #708AF4; outline-offset: 2px; }
 
 .sb-backdrop {
   display: none;
   position: fixed;
   inset: 0;
   z-index: 30;
-  background: rgb(2 6 23 / 0.45);
+  background: rgba(15, 23, 42, 0.45);
 }
 
-.sb-aside { transition: transform 0.2s ease, width 0.2s ease; }
+.sb-aside {
+  transition: transform 0.2s ease, width 0.2s ease;
+  background: var(--sidebar-bg) !important;
+}
+.sb-aside.glass,
+.sb-aside.glass-soft,
+.sb-aside.glass-strong {
+  background: var(--sidebar-bg) !important;
+  border-right: 1px solid var(--line);
+  box-shadow: none;
+}
 
-/* Mobile / tablet: overlay drawer instead of the fixed rail. */
 @media (max-width: 1023.98px) {
   .sb-aside {
     position: fixed;
@@ -447,28 +511,18 @@ body {
     transform: translateX(-100%);
     overflow: hidden;
   }
-  /* Closed on mobile: the drawer is opened by the MobileTopBar icon in the
-     page header, so the fixed logo button stays out of the way (it only renders
-     as the drawer's close mark while the drawer is open — see below). */
   .sb-toggle { display: none; }
   html[data-sb-mobile="open"] .sb-aside {
     transform: translateX(0);
-    box-shadow: 0 12px 32px -12px rgb(2 6 23 / 0.5);
+    box-shadow: var(--shadow-lg);
   }
-  /* Open drawer: the Full logo mark sits at the top (like the PC expanded
-     sidebar) and doubles as the close control; the nav clears below it. */
   html[data-sb-mobile="open"] .sb-toggle { display: inline-flex; left: 0.75rem; right: auto; }
   html[data-sb-mobile="open"] .sb-aside > nav { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin-top: 3rem; }
   html[data-sb-mobile="open"] .sb-backdrop { display: block; }
-  /* Removed: html[data-sb-mobile="open"] { overflow: hidden; } — handled in JS to avoid layout shift */
-  /* Pinned bottom section on the mobile drawer: never scrolls. */
   html[data-sb-mobile="open"] .sb-foot { flex-shrink: 0; padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px)); }
 }
 
-/* Desktop: collapse to a compact icon rail. */
 @media (min-width: 1024px) {
-  /* The fixed logo button lives outside the aside's flow, so push the nav
-     below it (the brand mark itself is the open/collapse control). */
   html[data-sb] .sb-aside > nav { margin-top: 3rem; }
   html[data-sb="collapsed"] .sb-aside { width: 3.5rem; }
   html[data-sb="collapsed"] .sb-label,
@@ -480,28 +534,14 @@ body {
   html[data-sb="collapsed"] .sb-msg { display: none; }
   html[data-sb="collapsed"] .sb-aside nav a { justify-content: center; }
   html[data-sb="collapsed"] .sb-section-head { justify-content: center; }
-  /* Section separators in the rail (change request): the group headings
-     (Projects / Admin) are hidden when collapsed, so their boundaries get
-     thin gray rules — same colour as the divider the completed section
-     already shows above "Project Done". */
-  html[data-sb="collapsed"] .sb-section-head {
-    border-top: 1px solid var(--line);
-    padding-top: 0.5rem;
-  }
+  html[data-sb="collapsed"] .sb-section-head { border-top: 1px solid var(--line); padding-top: 0.5rem; }
   html[data-sb="collapsed"] .sb-section {
-    display: block;
-    height: 0;
-    overflow: hidden;
-    margin: 0.5rem 0 0;
-    padding: 0;
-    border-top: 1px solid var(--line);
-    font-size: 0;
+    display: block; height: 0; overflow: hidden; margin: 0.5rem 0 0; padding: 0;
+    border-top: 1px solid var(--line); font-size: 0;
   }
   html[data-sb="collapsed"] .sb-collapse { grid-template-rows: 1fr; }
   html[data-sb="collapsed"] .sb-proj-link { display: flex; justify-content: center; padding: 0.375rem 0; }
   html[data-sb="collapsed"] .sb-completed { margin-top: 0.5rem; border-top: 1px solid var(--line); padding-top: 0.5rem; }
-  /* Collapsed rail: bottom items (avatar, bell, theme, profile, logout) share one
-     column, one 40x40 hit-area, one hover treatment — no per-item boxes. */
   html[data-sb="collapsed"] .sb-foot { align-items: center !important; gap: 0.0625rem !important; }
   html[data-sb="collapsed"] .sb-user {
     flex-direction: column !important; align-items: center !important; gap: 0.0625rem !important;
@@ -512,26 +552,18 @@ body {
     width: 2.5rem !important; height: 2.5rem !important; display: flex !important; align-items: center !important; justify-content: center !important;
     border-radius: 0.75rem !important; background: transparent !important; border: none !important; padding: 0 !important;
   }
-  html[data-sb="collapsed"] .sb-user > span:first-child {
-    justify-content: center !important; gap: 0 !important;
-  }
-  html[data-sb="collapsed"] .sb-user > span:first-child > span:not([aria-hidden]) {
-    display: none !important;
-  }
+  html[data-sb="collapsed"] .sb-user > span:first-child { justify-content: center !important; gap: 0 !important; }
+  html[data-sb="collapsed"] .sb-user > span:first-child > span:not([aria-hidden]) { display: none !important; }
   html[data-sb="collapsed"] .sb-user > span:first-child img,
-  html[data-sb="collapsed"] .sb-user > span:first-child > span[aria-hidden] {
-    width: 2rem !important; height: 2rem !important; font-size: 0.8125rem !important;
-  }
+  html[data-sb="collapsed"] .sb-user > span:first-child > span[aria-hidden] { width: 2rem !important; height: 2rem !important; font-size: 0.8125rem !important; }
   html[data-sb="collapsed"] .sb-user button,
   html[data-sb="collapsed"] .sb-user a {
     width: 2.5rem !important; height: 2.5rem !important; display: flex !important; align-items: center !important; justify-content: center !important;
     border-radius: 0.75rem !important; background: transparent !important; border: none !important; padding: 0 !important;
   }
   html[data-sb="collapsed"] .sb-user button:hover,
-  html[data-sb="collapsed"] .sb-user a:hover { background: color-mix(in srgb, var(--accent) 10%, transparent) !important; }
-  html[data-sb="collapsed"] .sb-actions {
-    flex-direction: column !important; align-items: center !important; gap: 0.0625rem !important; width: 100% !important;
-  }
+  html[data-sb="collapsed"] .sb-user a:hover { background: rgba(112, 138, 244, 0.12) !important; }
+  html[data-sb="collapsed"] .sb-actions { flex-direction: column !important; align-items: center !important; gap: 0.0625rem !important; width: 100% !important; }
   html[data-sb="collapsed"] .sb-actions > * {
     width: 2.5rem !important; height: 2.5rem !important; display: flex !important; align-items: center !important; justify-content: center !important;
     border-radius: 0.75rem !important; background: transparent !important; border: none !important; padding: 0 !important;
@@ -542,57 +574,43 @@ body {
     border-radius: 0.75rem !important; background: transparent !important; border: none !important;
   }
   html[data-sb="collapsed"] .sb-actions a:hover,
-  html[data-sb="collapsed"] .sb-actions button:hover { background: color-mix(in srgb, var(--accent) 10%, transparent) !important; }
-  /* Normalize icon size across all collapsed bottom items to match nav icons (16px). */
+  html[data-sb="collapsed"] .sb-actions button:hover { background: rgba(112, 138, 244, 0.12) !important; }
   html[data-sb="collapsed"] .sb-foot svg { width: 1rem !important; height: 1rem !important; }
-  /* Bell badge sits on the icon corner, never stretches the box. */
   html[data-sb="collapsed"] .sb-user .relative { position: relative !important; width: 2.5rem !important; height: 2.5rem !important; display: flex !important; align-items: center !important; justify-content: center !important; }
   html[data-sb="collapsed"] .sb-user .relative > span { position: absolute !important; top: 0.125rem !important; right: 0.125rem !important; }
 }
 
-/* Workspaces list: show 5 items at once and scroll when there are more — the
-   same rule applies in the mobile drawer and in BOTH desktop states, so the
-   collapsed icon rail scrolls exactly like the expanded sidebar. */
 .sb-workspace-list {
   max-height: calc(5 * 1.625rem + 4 * 0.25rem);
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-gutter: stable;
-}
-/* Workspaces-only scrollbar: hidden at idle, appears on hover/focus or while scrolling.
-   Scoped to .sb-workspace-list so no other scrollbars are affected. */
-.sb-workspace-list {
-  scrollbar-width: thin; /* Firefox */
+  scrollbar-width: thin;
   scrollbar-color: transparent transparent;
 }
 .sb-workspace-list:hover,
 .sb-workspace-list:focus-within,
 .sb-workspace-list[data-scrolling="1"] {
-  scrollbar-color: color-mix(in srgb, var(--muted) 28%, transparent) transparent;
+  scrollbar-color: rgba(107, 114, 128, 0.35) transparent;
 }
 .sb-workspace-list::-webkit-scrollbar { width: 3px; height: 3px; }
 .sb-workspace-list::-webkit-scrollbar-track { background: transparent; }
-.sb-workspace-list::-webkit-scrollbar-thumb {
-  background-color: transparent;
-  border-radius: 9999px;
-  transition: background-color 0.25s ease;
-}
+.sb-workspace-list::-webkit-scrollbar-thumb { background-color: transparent; border-radius: 9999px; transition: background-color 0.25s ease; }
 .sb-workspace-list:hover::-webkit-scrollbar-thumb,
 .sb-workspace-list:focus-within::-webkit-scrollbar-thumb,
-.sb-workspace-list[data-scrolling="1"]::-webkit-scrollbar-thumb {
-  background-color: color-mix(in srgb, var(--muted) 28%, transparent);
-}
+.sb-workspace-list[data-scrolling="1"]::-webkit-scrollbar-thumb { background-color: rgba(107, 114, 128, 0.35); }
 
 @media (prefers-reduced-motion: reduce) {
   .sb-toggle, .sb-aside { transition: none; }
-  /* Liquid Glass: drop the lift/parallax hover so nothing moves. */
   .tt-kpi, .tt-kpi:hover { transition: none; transform: none; }
+  .tt-btn, .tt-btn-primary, .tt-input { transition: none; }
 }
 
-/* Dropdown readability (Phase 11.4) */
-select, option, optgroup { color: var(--text); background-color: var(--surface); }
-select:focus, option:focus { outline: 2px solid var(--accent); }
+/* Dropdown/popover readability */
+select, option, optgroup { color: var(--text); background-color: var(--surface-popover); }
+select:focus, option:focus { outline: 2px solid #708AF4; }
 [role="listbox"], [role="menu"] { background-color: var(--surface-popover); color: var(--text); border: 1px solid var(--line); }
 
-.row-selected { box-shadow: inset 3px 0 0 0 var(--row-selected-bar); }
-.row-selected:hover { background-color: color-mix(in srgb, var(--accent) 16%, transparent) !important; }
+.row-selected { box-shadow: inset 3px 0 0 0 var(--row-selected-bar); background-color: var(--row-selected-bg); }
+.row-selected:hover { background-color: rgba(112, 138, 244, 0.16) !important; }
+

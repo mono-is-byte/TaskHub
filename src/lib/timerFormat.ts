@@ -35,7 +35,7 @@ export function timerChipClass(state: string | undefined): string {
     case "running": return "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200";
     case "overdue": return "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300";
     case "finished": return "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200";
-    default: return "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300";
+    default: return "bg-canvas text-slate-600 dark:bg-slate-800 dark:text-slate-300";
   }
 }
 

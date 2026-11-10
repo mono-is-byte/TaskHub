@@ -134,14 +134,14 @@ export default function TimelinePage() {
     <div>
       <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
         <h2 className="tt-title">Timeline</h2>
-        <select value={group} onChange={(e) => setGroup(e.target.value)} className="rounded border p-1 dark:border-slate-700 dark:bg-slate-800" aria-label="Group timeline rows">
+        <select value={group} onChange={(e) => setGroup(e.target.value)} className="rounded-md border border-line bg-surface p-1.5 text-xs" aria-label="Group timeline rows">
           <option value="epic">Group: Epic</option>
           <option value="assignee">Group: Assignee</option>
           <option value="status">Group: Status</option>
         </select>
         <label className="flex items-center gap-1">
           Zoom
-          <select value={zoom} onChange={(e) => setZoom(e.target.value as TimelineZoom)} className="rounded border p-1 dark:border-slate-700 dark:bg-slate-800" aria-label="Timeline zoom">
+          <select value={zoom} onChange={(e) => setZoom(e.target.value as TimelineZoom)} className="rounded-md border border-line bg-surface p-1.5 text-xs" aria-label="Timeline zoom">
             {TIMELINE_ZOOMS.map((z) => <option key={z} value={z}>{ZOOM_LABEL[z]}</option>)}
           </select>
         </label>
@@ -160,7 +160,7 @@ export default function TimelinePage() {
       </div>
 
       {!visible && (
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-muted">
           No project or task dates yet. Set a Start/End date (or a due time) on a task to see it on the schedule.
         </p>
       )}
@@ -195,8 +195,8 @@ export default function TimelinePage() {
             <div className="relative h-7" style={gridLines} aria-hidden="true">
               {project && projectBand && (
                 <span
-                  className="absolute top-0 h-1.5 rounded bg-accent/30"
-                  style={{ left: projectBand.left, width: projectBand.width }}
+                  className="absolute top-0 h-1.5 rounded"
+                  style={{ left: projectBand.left, width: projectBand.width, backgroundColor: "rgba(112,138,244,0.35)" }}
                   title={`Project range: ${fmtKey(project.start)} → ${fmtKey(project.end)}`}
                 />
               )}
@@ -206,7 +206,7 @@ export default function TimelinePage() {
                 </span>
               ))}
               {todayInRange && (
-                <span className="absolute top-1.5 h-5 w-0.5 bg-red-500/70" style={{ left: todayPx }} title={`Today (${today})`} />
+                <span className="absolute top-1.5 h-5 w-0.5" style={{ left: todayPx, backgroundColor: "rgba(239,68,68,0.7)" }} title={`Today (${today})`} />
               )}
             </div>
           </div>
@@ -239,7 +239,7 @@ export default function TimelinePage() {
                     </span>
                     <span className="truncate text-muted">{t.estHours != null ? `${t.estHours}h` : "—"}</span>
                     <span className="truncate text-muted">{t.loggedHours ? `${t.loggedHours}h` : "—"}</span>
-                    <div className="relative h-4 rounded bg-slate-100 dark:bg-slate-800" style={gridLines}>
+                    <div className="relative h-4 rounded bg-[var(--row-hover)]" style={gridLines}>
                       {range && rect ? (
                         <div
                           className="absolute top-0 h-4 rounded"
@@ -250,7 +250,7 @@ export default function TimelinePage() {
                         <span className="absolute left-1 top-0 text-[10px] italic text-muted">no dates set</span>
                       )}
                       {todayInRange && (
-                        <span className="absolute top-0 h-4 w-px bg-red-500/60" style={{ left: todayPx }} title={`Today (${today})`} />
+                        <span className="absolute top-0 h-4 w-px" style={{ left: todayPx, backgroundColor: "rgba(239,68,68,0.6)" }} title={`Today (${today})`} />
                       )}
                     </div>
                   </div>

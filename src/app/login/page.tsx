@@ -62,7 +62,7 @@ function LoginForm() {
       <div className="flex flex-1 items-center justify-center p-4">
         <div className="glass-strong grid w-full max-w-4xl overflow-hidden rounded-2xl border border-line shadow-xl md:grid-cols-2">
         {/* Brand panel — hidden on small screens, full panel from md up. */}
-        <div className="hidden flex-col justify-between bg-black p-8 text-white md:flex">
+        <div className="hidden flex-col justify-between p-8 text-white md:flex" style={{ backgroundColor: "#708AF4" }}>
           <div>
             <div className="mb-6 flex justify-center">
               <Image
@@ -71,17 +71,17 @@ function LoginForm() {
                 width={844}
                 height={369}
                 unoptimized
-                className="h-16 w-auto object-contain"
+                className="h-16 w-auto object-contain brightness-0 invert"
               />
             </div>
             <h2 className="text-center text-2xl font-bold leading-snug">Plan, track and finish your team&apos;s work.</h2>
-            <ul className="mt-6 space-y-2 text-sm text-white/85">
-              <li className="flex items-center gap-2"><IconCheckCircle className="h-4 w-4 shrink-0" /> Board, table, timeline and calendar in one place</li>
-              <li className="flex items-center gap-2"><IconCheckCircle className="h-4 w-4 shrink-0" /> Working-hour timers and workload capacity</li>
-              <li className="flex items-center gap-2"><IconCheckCircle className="h-4 w-4 shrink-0" /> Roles, permissions and a full audit trail</li>
+            <ul className="mt-6 space-y-3 text-sm text-white/90">
+              <li className="flex items-center gap-2"><IconCheckCircle className="h-4 w-4 shrink-0 text-[#EDC211]" /> Board, table, timeline and calendar in one place</li>
+              <li className="flex items-center gap-2"><IconCheckCircle className="h-4 w-4 shrink-0 text-[#EDC211]" /> Working-hour timers and workload capacity</li>
+              <li className="flex items-center gap-2"><IconCheckCircle className="h-4 w-4 shrink-0 text-[#EDC211]" /> Roles, permissions and a full audit trail</li>
             </ul>
           </div>
-          <p className="text-xs text-white/70">Sign in with the account your administrator created for you.</p>
+          <p className="text-xs text-white/80">Sign in with the account your administrator created for you.</p>
         </div>
 
         {/* Form panel */}
@@ -165,8 +165,7 @@ function LoginForm() {
               type="submit"
               disabled={!canSubmit}
               aria-busy={busy}
-              style={{ backgroundColor: "#000", color: "#fff" }}
-              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold leading-none transition hover:opacity-90 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-80 dark:ring-1 dark:ring-white/25"
+              className="tt-btn-primary inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold"
             >
               {busy ? (
                 <>
@@ -183,7 +182,7 @@ function LoginForm() {
 
           <a
             href="/forgot-password"
-            className="mt-4 block rounded-md py-1 text-center text-sm font-medium text-neutral-900 underline-offset-4 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/30 dark:text-neutral-200 dark:focus-visible:ring-white/30"
+            className="mt-4 block rounded-md py-1 text-center text-sm font-medium text-[#708AF4] underline-offset-4 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#708AF4]/40"
           >
             Forgot password?
           </a>

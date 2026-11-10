@@ -360,7 +360,7 @@ export default function SidebarProjects({ projects, canCreate }: { projects: Sid
                   type="button"
                   onClick={create}
                   disabled={busy}
-                  className="rounded bg-indigo-600 px-2 py-0.5 text-xs font-semibold text-white disabled:opacity-50"
+                  className="rounded-md bg-[#708AF4] px-2 py-0.5 text-xs font-semibold text-white transition-colors hover:bg-[#5A76E8] disabled:opacity-50"
                 >
                   Create
                 </button>

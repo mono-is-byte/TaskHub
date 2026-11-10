@@ -84,8 +84,8 @@ export default function AdminRolesPage() {
       </div>
       {msg && <p className="mb-2 rounded bg-slate-200 p-2 text-sm dark:bg-slate-800">{msg}</p>}
       <form onSubmit={create} className="mb-4 flex items-end gap-2">
-        <label className="text-xs">New role name<input value={newName} onChange={(e) => setNewName(e.target.value)} className="mt-1 block rounded border p-1 dark:border-slate-700 dark:bg-slate-800" required /></label>
-        <button className="rounded bg-indigo-600 px-3 py-1 text-sm font-semibold text-white">Create</button>
+        <label className="text-xs">New role name<input value={newName} onChange={(e) => setNewName(e.target.value)} className="mt-1 block rounded border p-1 dark:border-line dark:bg-slate-800" required /></label>
+        <button className="rounded bg-[#708AF4] px-3 py-1 text-sm font-semibold text-white">Create</button>
       </form>
 
       <div className="grid gap-2">
@@ -100,7 +100,7 @@ export default function AdminRolesPage() {
               <button onClick={() => setEditing(r)} className="ml-auto rounded border px-2 py-0.5 text-xs">Edit</button>
               <button onClick={() => requestDelete(r)} className="rounded border border-red-300 px-2 py-0.5 text-xs text-red-600">Delete</button>
             </div>
-            <p className="text-xs text-slate-500">{r.description}</p>
+            <p className="text-xs text-muted">{r.description}</p>
           </div>
         ))}
       </div>
@@ -114,7 +114,7 @@ export default function AdminRolesPage() {
               <input
                 value={editing.name}
                 onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-                className="mt-1 block w-full rounded border p-1 dark:border-slate-700 dark:bg-slate-800"
+                className="mt-1 block w-full rounded border p-1 dark:border-line dark:bg-slate-800"
                 required
               />
             </label>
@@ -135,7 +135,7 @@ export default function AdminRolesPage() {
                   {f}
                   <select value={editing.fieldRules[f] ?? "readonly"}
                     onChange={(e) => setEditing({ ...editing, fieldRules: { ...editing.fieldRules, [f]: e.target.value } })}
-                    className="rounded border text-xs dark:border-slate-700 dark:bg-slate-800">
+                    className="rounded border text-xs dark:border-line dark:bg-slate-800">
                     <option value="hidden">hidden</option>
                     <option value="readonly">readonly</option>
                     <option value="editable">editable</option>
@@ -144,7 +144,7 @@ export default function AdminRolesPage() {
               ))}
             </div>
             <div className="flex gap-2">
-              <button onClick={save} className="rounded bg-indigo-600 px-3 py-1 text-sm font-semibold text-white">Save</button>
+              <button onClick={save} className="rounded bg-[#708AF4] px-3 py-1 text-sm font-semibold text-white">Save</button>
               <button onClick={() => setEditing(null)} className="rounded border px-3 py-1 text-sm">Cancel</button>
             </div>
           </div>

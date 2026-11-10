@@ -70,8 +70,8 @@ function Panel({ open, pos, panelRef, children, className = "" }: { open: boolea
 
 function RowBtn({ checked, label, onClick, indent = false, bold = false }: { checked: boolean; label: string; onClick: () => void; indent?: boolean; bold?: boolean }) {
   return (
-    <button type="button" onClick={onClick} className={cx("flex w-full items-center gap-2 rounded px-2 py-1 text-left hover:bg-line", indent && "pl-5", bold && "font-medium")}>
-      <input type="checkbox" readOnly checked={checked} className="h-3.5 w-3.5 accent-indigo-600" />
+    <button type="button" onClick={onClick} className={cx("flex w-full items-center gap-2 rounded px-2 py-1 text-left hover:bg-[var(--row-hover)]", indent && "pl-5", bold && "font-medium")}>
+      <input type="checkbox" readOnly checked={checked} className="h-3.5 w-3.5 accent-[#708AF4]" />
       <span className="min-w-0 flex-1 truncate" title={label}>{label}</span>
     </button>
   );
@@ -295,7 +295,7 @@ export default function CalendarPage() {
       style={{ borderLeftColor: TIMER_HEX[t.timerState] ?? t.statusColor }}
     >
       <span className="mr-0.5 inline-block h-1.5 w-1.5 rounded-full align-middle" style={{ background: t.statusColor }} />
-      <span className="font-mono text-slate-500">{t.key}</span> {t.title}
+      <span className="font-mono text-muted">{t.key}</span> {t.title}
     </button>
   );
 
@@ -306,11 +306,11 @@ export default function CalendarPage() {
           <MobileTopBar />
           <h1 className="tt-title">Calendar</h1>
         </div>
-        <button onClick={() => step(-1)} className="rounded border px-2 py-1 dark:border-slate-700" aria-label={view === "month" ? "Previous month" : "Previous week"} title={view === "month" ? "Previous month" : "Previous week"}><IconChevronLeft className="h-3.5 w-3.5" /></button>
-        <button onClick={() => setAnchor(new Date())} className="rounded border px-2 py-1 dark:border-slate-700">Today</button>
-        <button onClick={() => step(1)} className="rounded border px-2 py-1 dark:border-slate-700" aria-label={view === "month" ? "Next month" : "Next week"} title={view === "month" ? "Next month" : "Next week"}><IconChevronRight className="h-3.5 w-3.5" /></button>
-        <span className="font-semibold">{title}</span>
-        <select value={view} onChange={(e) => setView(e.target.value as "month" | "week")} className="rounded border p-1 dark:border-slate-700 dark:bg-slate-800" aria-label="Calendar view" title="Month or week view">
+        <button onClick={() => step(-1)} className="tt-btn" aria-label={view === "month" ? "Previous month" : "Previous week"} title={view === "month" ? "Previous month" : "Previous week"}><IconChevronLeft className="h-3.5 w-3.5" /></button>
+        <button onClick={() => setAnchor(new Date())} className="tt-btn">Today</button>
+        <button onClick={() => step(1)} className="tt-btn" aria-label={view === "month" ? "Next month" : "Next week"} title={view === "month" ? "Next month" : "Next week"}><IconChevronRight className="h-3.5 w-3.5" /></button>
+        <span className="font-semibold text-[var(--text)]">{title}</span>
+        <select value={view} onChange={(e) => setView(e.target.value as "month" | "week")} className="tt-input w-auto py-1.5 text-xs" aria-label="Calendar view" title="Month or week view">
           <option value="month">Month</option>
           <option value="week">Week</option>
         </select>
@@ -370,14 +370,14 @@ export default function CalendarPage() {
         </div>
 
         {error && (
-          <span className="flex items-center gap-1 rounded bg-red-50 px-2 py-0.5 text-red-700 dark:bg-red-950 dark:text-red-300" role="alert">
+          <span className="flex items-center gap-1 rounded-md border border-[rgba(239,68,68,0.3)] bg-[rgba(239,68,68,0.12)] px-2 py-1 text-[#EF4444]" role="alert">
             {error}
             <button onClick={() => setReloadKey((k) => k + 1)} className="underline underline-offset-2" title="Try loading the calendar again">
               Retry
             </button>
           </span>
         )}
-        {msg && <span className="rounded bg-emerald-50 px-2 py-0.5 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" role="status">{msg}</span>}
+        {msg && <span className="rounded-md border border-[rgba(22,163,74,0.3)] bg-[rgba(22,163,74,0.12)] px-2 py-1 text-[#16A34A]" role="status">{msg}</span>}
         <button onClick={() => setSettingsOpen(true)} className="tt-btn" title="Holidays and working-day exceptions are managed here">
           <IconSliders className="h-3.5 w-3.5" /> Calendar Settings
         </button>
@@ -432,8 +432,8 @@ export default function CalendarPage() {
                 } ${inMonth ? "" : "opacity-60"} ${key === todayKey ? "ring-2 ring-inset ring-accent" : ""}`}
               >
                 <div className="mb-1 flex items-center justify-between gap-1">
-                  <span className={`text-[11px] font-semibold ${info.kind === "working" ? "text-slate-500" : "text-muted"}`}>{d.getDate()}</span>
-                  {canToggle && (info.kind === "exception" ? (
+                  <span className={`text-[11px] font-semibold ${info.kind === "working" ? "text-muted" : "text-muted"}`}>{d.getDate()}</span>
+                  {canToggle && info.weekend && (info.kind === "exception" ? (
                     <button
                       onClick={() => toggleException(key, true)}
                       disabled={busyDay === key}
@@ -443,7 +443,7 @@ export default function CalendarPage() {
                     >
                       <IconX className="h-3 w-3" />
                     </button>
-                  ) : info.kind !== "working" ? (
+                  ) : (
                     <button
                       onClick={() => toggleException(key, false)}
                       disabled={busyDay === key}
@@ -453,9 +453,9 @@ export default function CalendarPage() {
                     >
                       <IconSun className="h-3 w-3" />
                     </button>
-                  ) : null)}
+                  ))}
                 </div>
-                {info.exception && (
+                {info.exception && info.weekend && (
                   <div
                     title={info.exception.note ? `Working day: ${info.exception.note}` : "Working-day exception: the office is open"}
                     className="mb-1 flex items-center gap-0.5 truncate rounded bg-amber-100 px-1 text-[10px] text-amber-800 dark:bg-amber-900/60 dark:text-amber-200"

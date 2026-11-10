@@ -40,29 +40,29 @@ export default function ChangePasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <form onSubmit={submit} className="w-full max-w-sm rounded-xl bg-white p-6 shadow dark:bg-slate-900">
-        <h1 className="text-xl font-bold">Set a new password</h1>
-        <p className="mb-4 text-sm text-slate-500">
+    <div className="flex min-h-screen items-center justify-center bg-canvas p-4">
+      <form onSubmit={submit} className="tt-card w-full max-w-sm p-6">
+        <h1 className="text-xl font-bold tracking-tight">Set a new password</h1>
+        <p className="mb-4 mt-1 text-sm text-muted">
           Your account uses a temporary password. Choose a new one (min 8 chars, upper + lower + digit).
         </p>
-        {error && <p className="mb-3 rounded bg-red-50 p-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">{error}</p>}
-        <label className="mb-2 block text-sm">
+        {error && <p role="alert" className="mb-3 rounded-md border border-[rgba(239,68,68,0.3)] bg-[rgba(239,68,68,0.12)] p-2 text-sm text-[#B91C1C] dark:text-[#FCA5A5]">{error}</p>}
+        <label className="mb-2 block text-sm font-medium">
           Current (temporary) password
-          <input type="password" className="mt-1 w-full rounded border p-2 dark:border-slate-700 dark:bg-slate-800"
+          <input type="password" className="tt-input mt-1"
             value={current} onChange={(e) => setCurrent(e.target.value)} autoComplete="current-password" required />
         </label>
-        <label className="mb-2 block text-sm">
+        <label className="mb-2 block text-sm font-medium">
           New password
-          <input type="password" className="mt-1 w-full rounded border p-2 dark:border-slate-700 dark:bg-slate-800"
+          <input type="password" className="tt-input mt-1"
             value={next} onChange={(e) => setNext(e.target.value)} autoComplete="new-password" required />
         </label>
-        <label className="mb-4 block text-sm">
+        <label className="mb-4 block text-sm font-medium">
           Confirm new password
-          <input type="password" className="mt-1 w-full rounded border p-2 dark:border-slate-700 dark:bg-slate-800"
+          <input type="password" className="tt-input mt-1"
             value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" required />
         </label>
-        <button type="submit" disabled={busy} className="w-full rounded bg-indigo-600 p-2 font-semibold text-white disabled:opacity-50">
+        <button type="submit" disabled={busy} className="tt-btn-primary w-full">
           {busy ? "Saving…" : "Save new password"}
         </button>
       </form>

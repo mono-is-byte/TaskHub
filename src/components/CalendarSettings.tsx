@@ -33,8 +33,8 @@ export interface HolidayRow {
   canManage: boolean;
 }
 
-const inp = "rounded border p-1 text-xs dark:border-slate-700 dark:bg-slate-800";
-const btn = "rounded border px-2 py-0.5 text-xs hover:bg-line dark:border-slate-700";
+const inp = "tt-input !h-7 !min-h-0 !px-2 !py-0.5 !text-xs";
+const btn = "tt-btn !h-7 !min-h-0 !px-2.5 !py-0 !text-xs";
 
 interface EditState {
   startDate: string;
@@ -70,13 +70,15 @@ export default function CalendarSettings({
   const [add, setAdd] = useState({ startDate: dayKey(new Date()), endDate: "", name: "", type: "public" });
   const [edits, setEdits] = useState<Record<string, EditState>>({});
   const [deleting, setDeleting] = useState<HolidayRow | null>(null);
-  const [exAdd, setExAdd] = useState({ date: dayKey(new Date()), note: "" });
+  const [exNoteDrafts, setExNoteDrafts] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     try {
       const d = await api<{ holidays: HolidayRow[]; exceptions: ExceptionRow[]; canManageGlobal: boolean }>("/api/holidays");
       setRows(d.holidays);
-      setExceptions(d.exceptions ?? []);
+      const ex = d.exceptions ?? [];
+      setExceptions(ex);
+      setExNoteDrafts(Object.fromEntries(ex.map((e) => [e.date, e.note ?? ""])));
       setCanManage(d.canManageGlobal === true);
       setErr("");
     } catch (e) {
@@ -91,10 +93,16 @@ export default function CalendarSettings({
     for (const e of exceptions) {
       const d = parseDayKey(e.date);
       const hol = (rows ?? []).find((h) => holidayCoversDay(h, e.date));
+      let weekdayLabel = "";
+      if (d) {
+        const parts = e.date.split("-").map(Number);
+        const local = parts.length === 3 ? new Date(parts[0], parts[1] - 1, parts[2]) : d;
+        weekdayLabel = local.toLocaleDateString("en-US", { weekday: "long" });
+      }
       map.set(
         e.date,
         hol ? `was the holiday “${hol.name || "Holiday"}”` :
-        d && isWeekendDay(d) ? "was a weekly holiday (Fri/Sat)" :
+        d && isWeekendDay(d) ? `was a weekly holiday (${weekdayLabel || "Fri/Sat"})` :
         "was already a working day",
       );
     }
@@ -184,23 +192,6 @@ export default function CalendarSettings({
     } finally { setBusy(""); }
   }
 
-  async function addException() {
-    setBusy("ex-add"); setErr(""); setMsg("");
-    try {
-      const res = await api<{ exception: ExceptionRow }>("/api/working-days", {
-        method: "POST",
-        body: JSON.stringify({ date: exAdd.date, note: exAdd.note }),
-      });
-      setMsg(`${fmtDay(exAdd.date)} is now a working day (office open).`);
-      setExAdd({ date: dayKey(new Date()), note: "" });
-      void res;
-      await load();
-      onChanged();
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "Could not mark the date as a working day.");
-    } finally { setBusy(""); }
-  }
-
   async function removeException(date: string) {
     setBusy(`ex-${date}`); setErr(""); setMsg("");
     try {
@@ -213,25 +204,40 @@ export default function CalendarSettings({
     } finally { setBusy(""); }
   }
 
+  async function saveExceptionNote(date: string) {
+    const note = (exNoteDrafts[date] ?? "").trim();
+    const current = exceptions.find((e) => e.date === date)?.note ?? "";
+    if (note === current) return;
+    setBusy(`ex-note-${date}`); setErr(""); setMsg("");
+    try {
+      await api("/api/working-days", { method: "POST", body: JSON.stringify({ date, note }) });
+      setMsg(`${fmtDay(date)}: note updated.`);
+      await load();
+      onChanged();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Could not update the note.");
+    } finally { setBusy(""); }
+  }
+
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-start justify-center overflow-auto bg-black/40 p-4"
+      className="fixed inset-0 z-[70] flex items-start justify-center overflow-auto bg-[rgba(17,24,39,0.45)] p-4 backdrop-blur-[2px]"
       onClick={onClose}
     >
       <div
         role="dialog"
         aria-label="Calendar Settings — holidays and working days"
-        className="glass-strong mt-10 max-h-[85vh] w-[52rem] max-w-full overflow-auto rounded border border-line p-4 text-sm shadow-lg"
+        className="tt-card mt-10 max-h-[85vh] w-[52rem] max-w-full overflow-auto p-5 text-sm shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mb-2 flex items-center gap-2">
-          <h2 className="inline-flex items-center gap-1.5 text-base font-bold"><IconSliders className="h-4 w-4" /> Calendar Settings</h2>
+        <div className="mb-3 flex flex-wrap items-center gap-2 border-b border-line pb-3">
+          <h2 className="inline-flex items-center gap-2 text-base font-semibold text-[var(--text)]"><span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[rgba(112,138,244,0.12)] text-[#708AF4]"><IconSliders className="h-4 w-4" /></span> Calendar Settings</h2>
           <span className="text-xs text-muted">Holidays and working days are global (all projects).</span>
           <button onClick={onClose} className={`${btn} ml-auto`} aria-label="Close calendar settings">Close</button>
         </div>
 
-        {msg && <p className="mb-2 rounded bg-green-50 px-2 py-1 text-xs text-green-700 dark:bg-green-950 dark:text-green-300" role="status">{msg}</p>}
-        {err && <p className="mb-2 rounded bg-red-50 px-2 py-1 text-xs text-red-700 dark:bg-red-950 dark:text-red-300" role="alert">{err}</p>}
+        {msg && <p className="mb-3 rounded-md border border-[rgba(22,163,74,0.3)] bg-[rgba(22,163,74,0.12)] px-3 py-2 text-xs text-[#16A34A]" role="status">{msg}</p>}
+        {err && <p className="mb-3 rounded-md border border-[rgba(239,68,68,0.3)] bg-[rgba(239,68,68,0.12)] px-3 py-2 text-xs text-[#EF4444]" role="alert">{err}</p>}
 
         {rows !== null && !canManage && (
           <p className="mb-3 text-xs text-muted">
@@ -240,188 +246,216 @@ export default function CalendarSettings({
         )}
 
         {/* ── Holidays (date ranges) ─────────────────────────────────────── */}
-        <h3 className="mb-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-muted">
-          <IconFlag className="h-3.5 w-3.5" /> Holidays (date ranges)
-        </h3>
-        {canManage && (
-          <div className="mb-3 rounded border border-line p-2">
-            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
-              <label className="text-xs sm:w-44">Holiday name
-                <input
-                  value={add.name}
-                  onChange={(e) => setAdd({ ...add, name: e.target.value })}
-                  placeholder="e.g. Eid holiday"
-                  maxLength={120}
-                  className={`${inp} mt-0.5 block w-full`}
-                  aria-label="Holiday name"
-                />
-              </label>
-              <label className="text-xs">Start date
-                <input type="date" value={add.startDate} onChange={(e) => setAdd({ ...add, startDate: e.target.value })} className={`${inp} mt-0.5 block w-full`} aria-label="Holiday start date" />
-              </label>
-              <label className="text-xs">End date <span className="text-muted">(optional)</span>
-                <input type="date" value={add.endDate} min={add.startDate || undefined} onChange={(e) => setAdd({ ...add, endDate: e.target.value })} className={`${inp} mt-0.5 block w-full`} aria-label="Holiday end date" />
-              </label>
-              <label className="text-xs">Type
-                <select value={add.type} onChange={(e) => setAdd({ ...add, type: e.target.value })} className={`${inp} mt-0.5 block w-full`} aria-label="Holiday type">
-                  {HOLIDAY_TYPES.map((t) => <option key={t} value={t}>{HOLIDAY_TYPE_LABEL[t]}</option>)}
-                </select>
-              </label>
-              <button
-                onClick={() => void addHoliday()}
-                disabled={!add.name.trim() || !add.startDate || busy === "add" || Boolean(addRangeError)}
-                className="tt-btn text-xs"
-                title={addRangeError || "Adds every date in the range"}
-              >
-                Add holiday
-              </button>
+        <section className="tt-card bg-[var(--row-hover)] p-3">
+          <h3 className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted">
+            <IconFlag className="h-3.5 w-3.5 text-[#708AF4]" /> Holidays (date ranges)
+          </h3>
+          {canManage && (
+            <div className="mb-3 rounded-md border border-line bg-surface p-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:flex-nowrap sm:items-end">
+                <label className="min-w-0 text-xs sm:flex-1">
+                  <span className="block">Holiday name</span>
+                  <input
+                    value={add.name}
+                    onChange={(e) => setAdd({ ...add, name: e.target.value })}
+                    placeholder="e.g. Eid holiday"
+                    maxLength={120}
+                    className={`${inp} mt-1 block w-full`}
+                    aria-label="Holiday name"
+                  />
+                </label>
+                <label className="min-w-0 text-xs sm:flex-1">
+                  <span className="block">Start date</span>
+                  <input type="date" value={add.startDate} onChange={(e) => setAdd({ ...add, startDate: e.target.value })} className={`${inp} mt-1 block w-full`} aria-label="Holiday start date" />
+                </label>
+                <label className="min-w-0 text-xs sm:flex-1">
+                  <span className="block">End date <span className="text-muted">(optional)</span></span>
+                  <input type="date" value={add.endDate} min={add.startDate || undefined} onChange={(e) => setAdd({ ...add, endDate: e.target.value })} className={`${inp} mt-1 block w-full`} aria-label="Holiday end date" />
+                </label>
+                <label className="min-w-0 text-xs sm:flex-1">
+                  <span className="block">Type</span>
+                  <select value={add.type} onChange={(e) => setAdd({ ...add, type: e.target.value })} className={`${inp} mt-1 block w-full`} aria-label="Holiday type">
+                    {HOLIDAY_TYPES.map((t) => <option key={t} value={t}>{HOLIDAY_TYPE_LABEL[t]}</option>)}
+                  </select>
+                </label>
+                <label className="shrink-0 text-xs">
+                  <span className="invisible block">Action</span>
+                  <button
+                    onClick={() => void addHoliday()}
+                    disabled={!add.name.trim() || !add.startDate || busy === "add" || Boolean(addRangeError)}
+                    className="tt-btn-primary mt-1 h-8 whitespace-nowrap px-3 text-xs font-medium"
+                    title={addRangeError || "Adds every date in the range"}
+                  >
+                    Add holiday
+                  </button>
+                </label>
+              </div>
+              {addRangeError && <p className="mt-1 text-xs text-[#EF4444]">{addRangeError}</p>}
+              {add.endDate === "" && add.startDate && (
+                <p className="mt-1 text-[11px] text-muted">Leave the end date empty for a single-day holiday.</p>
+              )}
             </div>
-            {addRangeError && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{addRangeError}</p>}
-            {add.endDate === "" && add.startDate && (
-              <p className="mt-1 text-[11px] text-muted">Leave the end date empty for a single-day holiday.</p>
-            )}
-          </div>
-        )}
+          )}
 
-        {rows === null && !err && <p className="text-xs">Loading holidays…</p>}
+        {rows === null && !err && <p className="text-xs text-muted">Loading holidays…</p>}
         {rows && rows.length === 0 && <p className="text-xs text-muted">No holidays yet.</p>}
         {rows && rows.length > 0 && (
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="text-left text-muted">
-                <th className="py-1 pr-2 font-semibold">Dates</th>
-                <th className="py-1 pr-2 font-semibold">Name</th>
-                <th className="py-1 pr-2 font-semibold">Type</th>
-                <th className="py-1 font-semibold" />
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((h) => {
-                const edit = edits[h.id];
-                const invalidRange = Boolean(edit && edit.endDate && edit.endDate < edit.startDate);
-                return (
-                  <tr key={h.id} className="border-t border-line">
-                    <td className="py-1 pr-2 align-top">
-                      {edit ? (
-                        <>
-                          <span className="flex items-center gap-1">
-                            <input type="date" value={edit.startDate} onChange={(e) => setEdits((m) => ({ ...m, [h.id]: { ...edit, startDate: e.target.value } }))} className={inp} aria-label={`${h.name} start date`} />
-                            <span className="text-muted">→</span>
-                            <input type="date" value={edit.endDate} min={edit.startDate} onChange={(e) => setEdits((m) => ({ ...m, [h.id]: { ...edit, endDate: e.target.value } }))} className={inp} aria-label={`${h.name} end date`} />
+          <div className="overflow-x-auto rounded-md border border-line bg-surface">
+            <table className="tt-table w-full min-w-0 text-xs">
+              <thead>
+                <tr className="text-left text-xs text-muted">
+                  <th className="px-1.5 py-1.5 font-medium">Dates</th>
+                  <th className="px-1.5 py-1.5 font-medium">Name</th>
+                  <th className="px-1.5 py-1.5 font-medium">Type</th>
+                  <th className="px-1.5 py-1.5 font-medium text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((h) => {
+                  const edit = edits[h.id];
+                  const invalidRange = Boolean(edit && edit.endDate && edit.endDate < edit.startDate);
+                  const editInput = "tt-input !h-7 min-h-0 w-0 min-w-0 flex-1 !px-1 !py-0 !text-[11px] !leading-tight";
+                  const rowActionBtn = "tt-btn !h-7 !min-h-0 !px-1.5 !py-0 !text-[11px]";
+                  const rowActionPrimary = "tt-btn-primary !h-7 !min-h-0 !px-1.5 !py-0 !text-[11px] !font-medium";
+                  const rowActionDanger = "inline-flex h-7 items-center rounded-md border border-[rgba(239,68,68,0.35)] px-1.5 text-[11px] font-medium text-[#EF4444] hover:bg-[rgba(239,68,68,0.1)] disabled:opacity-50";
+                  return (
+                    <tr key={h.id} className="border-t border-line align-middle">
+                      <td className="px-1.5 py-1.5 align-middle">
+                        {edit ? (
+                          <div className="space-y-0.5">
+                            <div className="flex flex-nowrap items-center gap-0.5">
+                              <input type="date" value={edit.startDate} onChange={(e) => setEdits((m) => ({ ...m, [h.id]: { ...edit, startDate: e.target.value } }))} className={editInput} aria-label={`${h.name} start date`} />
+                              <span className="shrink-0 text-[11px] text-muted">→</span>
+                              <input type="date" value={edit.endDate} min={edit.startDate} onChange={(e) => setEdits((m) => ({ ...m, [h.id]: { ...edit, endDate: e.target.value } }))} className={editInput} aria-label={`${h.name} end date`} />
+                            </div>
+                            {invalidRange && <span className="block text-[11px] text-[#EF4444]">Invalid range</span>}
+                          </div>
+                        ) : (
+                          <span className="block truncate text-xs text-[var(--text)]" title={fmtSpan(h)}>{fmtSpan(h)}</span>
+                        )}
+                      </td>
+                      <td className="px-1.5 py-1.5 align-middle">
+                        {edit ? (
+                          <input value={edit.name} maxLength={120} placeholder="Holiday name" onChange={(e) => setEdits((m) => ({ ...m, [h.id]: { ...edit, name: e.target.value } }))} className="tt-input !h-7 min-h-0 w-full min-w-0 !px-1 !py-0 !text-[11px] !leading-tight" aria-label={`${h.startDate} holiday name`} />
+                        ) : (
+                          <span className="inline-flex min-w-0 items-center gap-1 text-xs text-[var(--text)]"><IconFlag className="h-3.5 w-3.5 shrink-0 text-[#708AF4]" /> <span className="truncate">{h.name || "(holiday)"}</span></span>
+                        )}
+                      </td>
+                      <td className="px-1.5 py-1.5 align-middle">
+                        {edit ? (
+                          <select value={edit.type} onChange={(e) => setEdits((m) => ({ ...m, [h.id]: { ...edit, type: e.target.value } }))} className="tt-input !h-7 min-h-0 w-full min-w-0 !px-1 !py-0 !text-[11px] !leading-tight" aria-label={`${h.name} type`}>
+                            {HOLIDAY_TYPES.map((t) => <option key={t} value={t}>{HOLIDAY_TYPE_LABEL[t]}</option>)}
+                          </select>
+                        ) : (
+                          <span className="block truncate text-xs text-[var(--text)]" title={HOLIDAY_TYPE_LABEL[h.type] ?? h.type}>{HOLIDAY_TYPE_LABEL[h.type] ?? h.type}</span>
+                        )}
+                      </td>
+                      <td className="px-1.5 py-1.5 align-middle">
+                        {h.canManage && (
+                          <span className="flex flex-wrap items-center justify-end gap-0.5">
+                            {edit ? (
+                              <>
+                                <button onClick={() => void saveHoliday(h)} disabled={busy === h.id || invalidRange} className={rowActionPrimary} title="Save">Save</button>
+                                <button onClick={() => cancelEdit(h.id)} disabled={busy === h.id} className={rowActionBtn} title="Cancel">Cancel</button>
+                              </>
+                            ) : (
+                              <>
+                                <button onClick={() => startEdit(h)} className={rowActionBtn} title="Edit"><IconPencil className="h-3.5 w-3.5" /></button>
+                                <button onClick={() => setDeleting(h)} className={rowActionDanger} title="Delete" aria-label={`Delete ${h.name || h.startDate}`}>
+                                  <IconTrash className="h-3.5 w-3.5" />
+                                </button>
+                              </>
+                            )}
                           </span>
-                          <span className="mt-0.5 block text-[11px] text-muted">{fmtSpan(edit)}</span>
-                          {invalidRange && <span className="mt-0.5 block text-[11px] text-red-600 dark:text-red-400">The end date is before the start date.</span>}
-                        </>
-                      ) : (
-                        <span className="font-mono">{fmtSpan(h)}</span>
-                      )}
-                    </td>
-                    <td className="py-1 pr-2 align-top">
-                      {edit ? (
-                        <input value={edit.name} maxLength={120} placeholder="(holiday)" onChange={(e) => setEdits((m) => ({ ...m, [h.id]: { ...edit, name: e.target.value } }))} className={`${inp} w-40`} aria-label={`${h.startDate} holiday name`} />
-                      ) : (
-                        <span className="inline-flex items-center gap-1"><IconFlag className="h-3 w-3" /> {h.name || "(holiday)"}</span>
-                      )}
-                    </td>
-                    <td className="py-1 pr-2 align-top">
-                      {edit ? (
-                        <select value={edit.type} onChange={(e) => setEdits((m) => ({ ...m, [h.id]: { ...edit, type: e.target.value } }))} className={inp} aria-label={`${h.name} type`}>
-                          {HOLIDAY_TYPES.map((t) => <option key={t} value={t}>{HOLIDAY_TYPE_LABEL[t]}</option>)}
-                        </select>
-                      ) : (
-                        <span className="text-muted">{HOLIDAY_TYPE_LABEL[h.type] ?? h.type}</span>
-                      )}
-                    </td>
-                    <td className="py-1 align-top">
-                      {h.canManage && (
-                        <span className="flex items-center justify-end gap-1">
-                          {edit ? (
-                            <>
-                              <button onClick={() => void saveHoliday(h)} disabled={busy === h.id || invalidRange} className="tt-btn text-xs" title="Save the changes to this holiday">Save</button>
-                              <button onClick={() => cancelEdit(h.id)} disabled={busy === h.id} className={btn} title="Cancel editing (nothing is saved)">Cancel</button>
-                            </>
-                          ) : (
-                            <>
-                              <button onClick={() => startEdit(h)} className={btn} title="Edit this holiday"><IconPencil className="h-3 w-3" /> Edit</button>
-                              <button onClick={() => setDeleting(h)} className="rounded border px-2 py-0.5 text-xs text-red-600 dark:border-slate-700 dark:text-red-400" title="Delete this holiday" aria-label={`Delete ${h.name || h.startDate}`}>
-                                <IconTrash className="h-3 w-3" />
-                              </button>
-                            </>
-                          )}
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-
-        {/* ── Working-day exceptions ─────────────────────────────────────── */}
-        <h3 className="mb-1 mt-4 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-muted">
-          <IconSun className="h-3.5 w-3.5" /> Working-day exceptions (office open)
-        </h3>
-        <p className="mb-2 text-[11px] text-muted">
-          An exception overrides the weekly holiday (Fri/Sat) and any configured holiday for that date. The holiday
-          itself is kept — removing the exception restores it.
-        </p>
-        {canManage && (
-          <div className="mb-3 flex flex-wrap items-end gap-2 rounded border border-line p-2">
-            <label className="text-xs">Date
-              <input type="date" value={exAdd.date} onChange={(e) => setExAdd({ ...exAdd, date: e.target.value })} className={`${inp} mt-0.5 block`} aria-label="Working-day exception date" />
-            </label>
-            <label className="text-xs">Note <span className="text-muted">(optional)</span>
-              <input value={exAdd.note} onChange={(e) => setExAdd({ ...exAdd, note: e.target.value })} maxLength={300} placeholder="e.g. Month-end closing" className={`${inp} mt-0.5 block w-52`} aria-label="Working-day exception note" />
-            </label>
-            <button onClick={() => void addException()} disabled={!exAdd.date || busy === "ex-add"} className="tt-btn text-xs" title="Mark this date as a working day">
-              <IconSun className="h-3.5 w-3.5" /> Mark as working day
-            </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
-        {exceptions.length === 0 ? (
-          <p className="text-xs text-muted">No working-day exceptions.</p>
-        ) : (
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="text-left text-muted">
-                <th className="py-1 pr-2 font-semibold">Date</th>
-                <th className="py-1 pr-2 font-semibold">Note</th>
-                <th className="py-1 pr-2 font-semibold">Overrides</th>
-                <th className="py-1 font-semibold" />
-              </tr>
-            </thead>
-            <tbody>
-              {exceptions.map((e) => (
-                <tr key={e.id} className="border-t border-line">
-                  <td className="py-1 pr-2 font-mono">{fmtDay(e.date)}</td>
-                  <td className="py-1 pr-2 text-muted">{e.note || "—"}</td>
-                  <td className="py-1 pr-2 text-muted">{underlying.get(e.date) ?? "—"}</td>
-                  <td className="py-1">
-                    {canManage && (
-                      <span className="flex justify-end">
-                        <button
-                          onClick={() => void removeException(e.date)}
-                          disabled={busy === `ex-${e.date}`}
-                          className={btn}
-                          title="Remove the exception and restore the original holiday status"
-                        >
-                          Restore holiday
-                        </button>
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+        </section>
 
-        {canManage && rows && rows.length > 0 && (
-          <p className="mt-3 flex items-center gap-1 text-[11px] text-muted">
-            <IconPencil className="h-3 w-3" /> Click <span className="font-semibold">Edit</span> on a row to change its dates, name or type — Save stores it, Cancel leaves the holiday untouched.
+        {/* ── Working-day exceptions ─────────────────────────────────────── */}
+        <section className="tt-card mt-4 bg-[var(--row-hover)] p-3">
+          <h3 className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted">
+            <IconSun className="h-3.5 w-3.5 text-[#EDC211]" /> Working-day exceptions (office open)
+          </h3>
+          <p className="mb-3 text-[11px] text-muted">
+            An exception overrides the weekly holiday (Fri/Sat) and any configured holiday for that date. The holiday
+            itself is kept — removing the exception restores it.
           </p>
-        )}
+
+          {exceptions.length === 0 ? (
+            <p className="text-xs text-muted">No working-day exceptions.</p>
+          ) : (
+            <div className="overflow-x-hidden rounded-md border border-line bg-surface">
+              <table className="tt-table w-full table-fixed text-xs">
+                <colgroup>
+                  <col style={{ width: "18%" }} />
+                  <col style={{ width: "22%" }} />
+                  <col style={{ width: "42%" }} />
+                  <col style={{ width: "18%" }} />
+                </colgroup>
+                <thead>
+                  <tr className="text-left text-xs text-muted">
+                    <th className="px-2 py-1.5 font-medium">Date</th>
+                    <th className="px-2 py-1.5 font-medium">Note</th>
+                    <th className="px-2 py-1.5 font-medium">Overrides</th>
+                    <th className="px-2 py-1.5 font-medium text-right" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {exceptions.map((e) => (
+                    <tr key={e.id} className="border-t border-line align-middle">
+                      <td className="px-2 py-1.5 text-xs text-[var(--text)]">{fmtDay(e.date)}</td>
+                      <td className="px-2 py-1.5 text-xs text-muted">
+                        {canManage ? (
+                          <input
+                            value={exNoteDrafts[e.date] ?? e.note ?? ""}
+                            onChange={(ev) => setExNoteDrafts((m) => ({ ...m, [e.date]: ev.target.value }))}
+                            onBlur={() => void saveExceptionNote(e.date)}
+                            onKeyDown={(ev) => { if (ev.key === "Enter") { ev.currentTarget.blur(); } }}
+                            maxLength={300}
+                            placeholder="Add note"
+                            className="tt-input !h-7 !min-h-0 w-full min-w-0 !px-2 !py-0.5 !text-xs"
+                            aria-label={`Note for ${fmtDay(e.date)}`}
+                            title={exNoteDrafts[e.date] ?? e.note ?? ""}
+                          />
+                        ) : (
+                          <span className="block truncate" title={e.note || "—"}>{e.note || "—"}</span>
+                        )}
+                      </td>
+                      <td className="px-2 py-1.5 text-xs text-muted" title={underlying.get(e.date) ?? "—"}>{underlying.get(e.date) ?? "—"}</td>
+                      <td className="px-2 py-1.5">
+                        {canManage && (
+                          <span className="flex justify-end">
+                            <button
+                              onClick={() => void removeException(e.date)}
+                              disabled={busy === `ex-${e.date}`}
+                              className="tt-btn !h-8 !min-h-0 !px-2.5 !py-0 !text-xs"
+                              title="Remove the exception and restore the original holiday status"
+                            >
+                              Restore holiday
+                            </button>
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {canManage && rows && rows.length > 0 && (
+            <p className="mt-3 flex items-center gap-1 text-xs text-muted">
+              <IconPencil className="h-3.5 w-3.5" /> Click <span className="font-semibold text-[var(--text)]">Edit</span> on a row to change its dates, name or type — Save stores it, Cancel leaves the holiday untouched.
+            </p>
+          )}
+        </section>
       </div>
 
       {deleting && (
