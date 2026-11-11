@@ -1,6 +1,6 @@
 ## 1. What this is
 
-**TaskTracker** is a self-hosted, Jira-like project & task management web app for a
+**TaskHub** is a self-hosted, Jira-like project & task management web app for a
 software team. It covers projects → epics → tasks, a Kanban board, a table
 view, a timeline/calendar, per-stage time tracking, role/permission management,
 automation rules, notifications, audit logging, and Excel/PDF export.
