@@ -8,7 +8,7 @@ This block is written and re-added by `next dev` - verify at `node_modules/next/
 
 <!-- END:nextjs-agent-rules -->
 
-## TaskTracker project rules
+## TaskHub project rules
 
 Read [README.md](./README.md), [PROJECT-SUMMARY.md](./PROJECT-SUMMARY.md) and the latest
 [PLAN.md](./PLAN.md) phase before changing code. The live deployment uses a remote
