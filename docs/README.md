@@ -1,54 +1,69 @@
-# TaskHub
+<a id="readme-top"></a>
 
-> ⚠️ This project is under active development and testing. Use at your own risk.
+<div align="center">
+
+<img alt="TaskHub - Kanban boards, inline-editable table, timeline, workload and calendar, reports with PDF and Excel export, per-project roles and field-level permissions" src="taskhub-header.svg" width="640"/>
 
 A self-hosted, multi-user TaskHub - a lightweight project management tool for small teams.
 Kanban boards, an inline-editable table, timeline, workload, calendar and reports, with
 per-project roles, field-level permissions, custom workflows and automation.
 
-[![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?logo=prisma&logoColor=white)](https://www.prisma.io/)
-[![SQLite](https://img.shields.io/badge/SQLite-better--sqlite3-003B57?logo=sqlite&logoColor=white)](https://github.com/WiseLibs/better-sqlite3)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Tests](https://img.shields.io/badge/tests-256_passing-2ea44f?logo=vitest&logoColor=white)](./tests)
-[![Node](https://img.shields.io/badge/node-%E2%89%A520.9-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+[![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white&style=flat-square)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black&style=flat-square)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white&style=flat-square)](https://www.typescriptlang.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?logo=prisma&logoColor=white&style=flat-square)](https://www.prisma.io/)
+[![SQLite](https://img.shields.io/badge/SQLite-better--sqlite3-003B57?logo=sqlite&logoColor=white&style=flat-square)](https://github.com/WiseLibs/better-sqlite3)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white&style=flat-square)](https://tailwindcss.com/)
+[![Tests](https://img.shields.io/badge/tests-256_passing-2ea44f?logo=vitest&logoColor=white&style=flat-square)](https://github.com/mono-is-byte/TaskHub/tree/main/tests)
+[![Node](https://img.shields.io/badge/node-%E2%89%A520.9-339933?logo=nodedotjs&logoColor=white&style=flat-square)](https://nodejs.org/)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)
+
+[✨ Features](#-features)  ·  [🚀 Getting Started](#-getting-started)  ·  [🏭 Production](#-running-in-production)  ·  [🧭 Usage](#-usage)  ·  [🔒 Security](#-security-notes)  ·  [🤝 Contributing](#-contributing)
+
+<br/>
+
+<img alt="Animated kanban board: a task card moves from To Do through In Progress, Development Done and In Testing to Done while the column counts and its Dev / Test / Total timer update live" src="demo-board.svg" width="100%"/>
+
+<sub>Animated board - a task moves from To Do to Done, the column counts update live and the stage timer tracks Dev / Test / Total time (illustration with sample data).</sub>
+
+</div>
+
+> [!WARNING]
+> This project is under active development and testing. Use at your own risk.
 
 ---
 
-## Table of Contents
+## 📚 Table of Contents
 
-- [Overview](#overview)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
+- [Overview](#-overview)
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Project Structure](#-project-structure)
+- [Getting Started](#-getting-started)
   - [Prerequisites](#prerequisites)
   - [1. Clone & install](#1-clone--install)
   - [2. Configure environment](#2-configure-environment)
   - [3. Set up the database](#3-set-up-the-database)
   - [4. Run the dev server](#4-run-the-dev-server)
   - [Demo data & first login](#demo-data--first-login)
-- [Environment Variables](#environment-variables)
-- [Running in Production](#running-in-production)
-- [Usage](#usage)
+- [Environment Variables](#-environment-variables)
+- [Running in Production](#-running-in-production)
+- [Usage](#-usage)
   - [Roles at a glance](#roles-at-a-glance)
   - [Key concepts](#key-concepts)
   - [Keyboard shortcuts](#keyboard-shortcuts)
-- [Excel Import / Export](#excel-import--export)
-- [Testing](#testing)
-- [Developer Scripts](#developer-scripts)
-- [Troubleshooting](#troubleshooting)
-- [Security Notes](#security-notes)
-- [Roadmap](#roadmap)
-- [Contributing](#contributing)
-- [License](#license)
+- [Excel Import / Export](#-excel-import--export)
+- [Testing](#-testing)
+- [Developer Scripts](#-developer-scripts)
+- [Troubleshooting](#-troubleshooting)
+- [Security Notes](#-security-notes)
+- [Roadmap](#-roadmap)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 ---
 
-## Overview
+## 📖 Overview
 
 TaskHub is a single-tenant project and issue tracker intended to be run by a team on
 its own infrastructure. It keeps the workflows teams actually need - configurable
@@ -61,17 +76,19 @@ cloud account. The Prisma schema uses only portable types, so a PostgreSQL move 
 mainly a datasource-provider change - note the committed migrations are SQLite SQL and
 would be regenerated for the new database.
 
+> [!NOTE]
 > **Status:** actively developed - 256 automated tests, full server-side permission
 > enforcement, and light/dark theming.
 
+> [!IMPORTANT]
 > **Security status (2026-10-31):** production Turso is fully migrated (23/23), a verified
 > read-only backup was taken before the audit, reset-token logging is opt-in, and an
 > exposure audit found no tracked secrets and no exposed env/database/git paths. See
-> [Security Notes](#security-notes).
+> [Security Notes](#-security-notes).
 
 ---
 
-## Features
+## ✨ Features
 
 ### 🗂️ Tasks & work management
 - **Board (Kanban)** with drag-and-drop status changes and per-column quick-add.
@@ -101,6 +118,13 @@ would be regenerated for the new database.
   at a removed option.
 
 ### 📊 Views & reporting
+
+<p align="center">
+<img alt="Animated dashboard: KPI cards, tasks by status, tasks by priority, open tasks per member, completion rate and recently changed activity" src="demo-dashboard.svg" width="100%"/>
+<br/>
+<sub>Dashboard - KPI cards, status / priority / member breakdowns and recent activity (illustration with sample data).</sub>
+</p>
+
 - **Dashboard** with KPI cards (Total / Completed / In progress / Pending / Overdue), a
   completion progress bar, tasks-by-status / priority / member bars, "assigned to me", the
   QA queue, overdue work and a recent-activity feed - all computed from the saved tasks,
@@ -208,7 +232,11 @@ would be regenerated for the new database.
 
 ---
 
-## Tech Stack
+## 🧰 Tech Stack
+
+<p align="center">
+<img alt="Next.js, React, TypeScript, Prisma, SQLite, Tailwind CSS, Node.js, Vitest, Vercel" src="https://skillicons.dev/icons?i=nextjs,react,ts,prisma,sqlite,tailwind,nodejs,vitest,vercel"/>
+</p>
 
 | Layer | Technology | Notes |
 |---|---|---|
@@ -225,7 +253,7 @@ would be regenerated for the new database.
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```text
 TaskHub/
@@ -262,6 +290,7 @@ TaskHub/
 │  ├─ hooks/                 # client data hooks (project data + SSE)
 │  └─ lib/                   # domain logic (permissions, tasks, workflow,
 │                            # timer, calendar, reports, pdf…)
+├─ docs/                     # README.md + header, icon and demo SVGs (flat folder)
 ├─ tests/                    # Vitest suites
 ├─ next.config.ts            # security headers
 ├─ prisma.config.ts          # Prisma 7 config (datasource URL from env)
@@ -270,7 +299,7 @@ TaskHub/
 
 ---
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
@@ -345,7 +374,7 @@ accounts for local development only:
 
 ---
 
-## Environment Variables
+## 🔑 Environment Variables
 
 | Variable | Required | Purpose |
 |---|---|---|
@@ -362,7 +391,7 @@ placeholders only.
 
 ---
 
-## Running in Production
+## 🏭 Running in Production
 
 ### Self-hosted (SQLite file)
 
@@ -424,6 +453,7 @@ same migrations, same tests:
 `src/lib/db.ts` picks the libSQL driver when `TURSO_DATABASE_URL` is set and
 `better-sqlite3` otherwise, so no code change is needed per environment.
 
+> [!NOTE]
 > **Local dev vs production credentials:** `.env.development.local` sets empty `TURSO_*`
 > values so `next dev` keeps using `dev.db`; `.env` keeps the real Turso credentials used by
 > `npm run turso:migrate` / `turso:backup`. Next.js loads `.env.development.local` only in
@@ -446,7 +476,7 @@ regenerate the SQLite migrations against Postgres, and switch to `@prisma/adapte
 
 ---
 
-## Usage
+## 🧭 Usage
 
 1. **Sign in** at `/login` with an account created by an administrator. There is no public
    sign-up.
@@ -504,7 +534,7 @@ editable in the permission matrix.
 
 ---
 
-## Excel Import / Export
+## 📑 Excel Import / Export
 
 From the Table view:
 
@@ -517,14 +547,15 @@ From the Table view:
 
 ---
 
-## Testing
+## 🧪 Testing
 
 ```bash
 npm test
 ```
 
 The suite runs **256 tests across 19 files** with Vitest. A `pretest` step
-(`scripts/pretest.mjs`)
+(`scripts/pretest.mjs`) builds the scratch test databases from the committed migrations
+before the suite runs.
 
 Coverage includes the domain rules (Est. Days math, transitions, working-day capacity with
 holidays and exceptions), permissions and field rules, authentication (login/logout,
@@ -538,7 +569,7 @@ dashboard aggregation, PDF generation, user management and Bangla-safe search.
 
 ---
 
-## Developer Scripts
+## 💻 Developer Scripts
 
 | Script | Purpose |
 |---|---|
@@ -558,7 +589,7 @@ dashboard aggregation, PDF generation, user management and Bangla-safe search.
 
 ---
 
-## Troubleshooting
+## 🩺 Troubleshooting
 
 - **`npm run seed` skips on a used database** - that is by design ("Seed skipped: users
   already exist. Use --reset to reseed."). Run `npm run seed -- --reset` to wipe and
@@ -588,9 +619,9 @@ dashboard aggregation, PDF generation, user management and Bangla-safe search.
 
 ---
 
-## Security Notes
+## 🔒 Security Notes
 
-  The repository is **public** (source only). The live deployment returns 404 for
+- The repository is **public** (source only). The live deployment returns 404 for
   `/.env`, `/dev.db` and `/.git/config`, and 401 for unauthenticated `/api/auth/me` and
   `/api/users`.
 - Sessions are opaque tokens stored as SHA-256 hashes; no separate signing secret
@@ -610,7 +641,7 @@ dashboard aggregation, PDF generation, user management and Bangla-safe search.
 
 ---
 
-## Roadmap
+## 🎯 Roadmap
 
 - [ ] Bundle a mailer (or SMTP relay UI) so password reset links can be delivered directly.
 - [ ] Swap the in-process SSE pub/sub for a shared broker to support multiple app instances
@@ -634,7 +665,7 @@ Known limitations today:
 
 ---
 
-## Contributing
+## 🤝 Contributing
 
 Contributions are welcome.
 
@@ -654,12 +685,23 @@ Please do not commit secrets, `.env` files, or generated databases (`*.db`).
 
 ---
 
-## License
+## 📄 License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
 
 ---
 
-## Disclaimer
+## 🚨 Disclaimer
 
-This software is provided "as is", without warranty of any kind. It is still being tested and may contain bugs or security issues. You are responsible for reviewing, testing and securing it before any real or production use, including data backups, credentials (change all demo passwords such as the seeded admin password) and hosting configuration. The author is not liable for any data loss, security incident or damage resulting from its use.
+> [!CAUTION]
+> This software is provided "as is", without warranty of any kind. It is still being tested and may contain bugs or security issues. You are responsible for reviewing, testing and securing it before any real or production use, including data backups, credentials (change all demo passwords such as the seeded admin password) and hosting configuration. The author is not liable for any data loss, security incident or damage resulting from its use.
+
+---
+
+<div align="center">
+
+<img alt="TaskHub" src="logo-icon.svg" width="44"/>
+
+[⬆ Back to top](#readme-top)
+
+</div>
