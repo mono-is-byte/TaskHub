@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img alt="TaskHub - Kanban boards, inline-editable table, timeline, workload and calendar, reports with PDF and Excel export, per-project roles and field-level permissions" src="taskhub-header.svg" width="640"/>
+<img alt="TaskHub - Kanban boards, inline-editable table, timeline, workload and calendar, reports with PDF and Excel export, per-project roles and field-level permissions" src="assets/taskhub-header.svg" width="640"/>
 
 A self-hosted, multi-user TaskHub - a lightweight project management tool for small teams.
 Kanban boards, an inline-editable table, timeline, workload, calendar and reports, with
@@ -22,7 +22,7 @@ per-project roles, field-level permissions, custom workflows and automation.
 
 <br/>
 
-<img alt="Animated kanban board: a task card moves from To Do through In Progress, Development Done and In Testing to Done while the column counts and its Dev / Test / Total timer update live" src="demo-board.svg" width="100%"/>
+<img alt="Animated kanban board: a task card moves from To Do through In Progress, Development Done and In Testing to Done while the column counts and its Dev / Test / Total timer update live" src="assets/demo-board.svg" width="100%"/>
 
 <sub>Animated board - a task moves from To Do to Done, the column counts update live and the stage timer tracks Dev / Test / Total time (illustration with sample data).</sub>
 
@@ -120,7 +120,7 @@ would be regenerated for the new database.
 ### 📊 Views & reporting
 
 <p align="center">
-<img alt="Animated dashboard: KPI cards, tasks by status, tasks by priority, open tasks per member, completion rate and recently changed activity" src="demo-dashboard.svg" width="100%"/>
+<img alt="Animated dashboard: KPI cards, tasks by status, tasks by priority, open tasks per member, completion rate and recently changed activity" src="assets/demo-dashboard.svg" width="100%"/>
 <br/>
 <sub>Dashboard - KPI cards, status / priority / member breakdowns and recent activity (illustration with sample data).</sub>
 </p>
@@ -290,7 +290,8 @@ TaskHub/
 │  ├─ hooks/                 # client data hooks (project data + SSE)
 │  └─ lib/                   # domain logic (permissions, tasks, workflow,
 │                            # timer, calendar, reports, pdf…)
-├─ docs/                     # README.md + header, icon and demo SVGs (flat folder)
+├─ docs/                     # README.md, project notes
+│  └─ assets/                # README header, icon and animated demo SVGs
 ├─ tests/                    # Vitest suites
 ├─ next.config.ts            # security headers
 ├─ prisma.config.ts          # Prisma 7 config (datasource URL from env)
@@ -700,7 +701,7 @@ This project is licensed under the MIT License. See the LICENSE file for details
 
 <div align="center">
 
-<img alt="TaskHub" src="logo-icon.svg" width="44"/>
+<img alt="TaskHub" src="assets/logo-icon.svg" width="44"/>
 
 [⬆ Back to top](#readme-top)
 
