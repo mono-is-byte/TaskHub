@@ -1,6 +1,6 @@
 # Changelog
 
-Notable changes to **TaskTracker**, recorded in the spirit of
+Notable changes to **TaskHub**, recorded in the spirit of
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 The repository has no tagged releases yet, so everything below belongs to the current
