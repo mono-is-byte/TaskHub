@@ -1,4 +1,4 @@
-# TaskTracker — PLAN
+# TaskHub — PLAN
 
 > Running record. Sections 0–6 describe the original design and are kept for history;
 > later phases supersede parts of them (sprints, stories and Story Points were removed,
