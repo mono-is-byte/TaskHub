@@ -291,7 +291,7 @@ TaskHub/
 │  └─ lib/                   # domain logic (permissions, tasks, workflow,
 │                            # timer, calendar, reports, pdf…)
 ├─ docs/                     # README.md, project notes
-│  └─ assets/                # README header, icon and animated demo SVGs
+│  └─ assets/                # header, icon and demo
 ├─ tests/                    # Vitest suites
 ├─ next.config.ts            # security headers
 ├─ prisma.config.ts          # Prisma 7 config (datasource URL from env)
