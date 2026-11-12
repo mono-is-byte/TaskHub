@@ -233,8 +233,8 @@ export default function UsersPage() {
           )}
           <p className="text-xs text-muted">
             {isAdmin
-              ? "Add and edit users and set their designation and role."  // isAdmin = true
-              : "You can edit the name and designation of users in the projects you manage."} // isAdmin = false
+              ? "Add and edit users and set their designation and role."
+              : "You can edit the name and designation of users in the projects you manage."}
           </p>
         </div>
         {isAdmin && (
