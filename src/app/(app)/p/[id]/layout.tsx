@@ -1,9 +1,8 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { loadProject, requireViewer } from "@/lib/server";
 import { memberRoleLabels } from "@/lib/memberLabel";
 import ProjectTabs from "@/components/ProjectTabs";
-import { MobileTopBar } from "@/components/SidebarToggle";
+import ViewportSwitch from "@/components/ViewportSwitch";
 
 const TABS = [
   ["board", "Board"],
@@ -40,14 +39,15 @@ export default async function ProjectLayout({
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-2.5">
-          <MobileTopBar />
-          <Link href="/" className="text-sm text-muted">← My Work</Link>
-        </div>
-        <h1 className="text-xl font-bold basis-full md:basis-auto">
-          <span className="mr-2 font-mono text-sm" style={{ color: accent }}>{project.key}</span>
-          {project.name}
-        </h1>
+        <ViewportSwitch
+          desktop={
+            <h1 className="tt-title vp-desktop-only basis-full md:basis-auto">
+              <span className="mr-2 font-mono text-sm" style={{ color: accent }}>{project.key}</span>
+              {project.name}
+            </h1>
+          }
+          mobile={null}
+        />
         <span
           className="rounded-md border border-line bg-surface px-2 py-0.5 text-xs text-muted"
           title="Your role in this project (falls back to your designation)"

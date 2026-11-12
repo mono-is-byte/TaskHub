@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { api } from "@/lib/client";
-import { expandSidebar, getCollapsed, isSidebarMobile } from "@/lib/sidebar";
+import { expandSidebar, getCollapsed, WORKSPACE_LIST_ROWS, workspaceListMaxHeight } from "@/lib/sidebar";
 import ConfirmDialog from "./ConfirmDialog";
 import EditProjectDialog from "./EditProjectDialog";
 import { IconCheck, IconChevronRight, IconDots, IconPencil, IconPlus, IconTrash } from "./icons";
@@ -33,6 +33,10 @@ export interface SidebarProject {
  */
 const LS_PROJECTS_OPEN = "tt.sidebar.projectsOpen";
 const LS_COMPLETED_OPEN = "tt.sidebar.completedOpen";
+
+/** Desktop sidebar row height + gap (matches the `.sb-proj-link` row styles). */
+const WS_ROW_REM = 1.625;
+const WS_GAP_REM = 0.25;
 
 export default function SidebarProjects({ projects, canCreate }: { projects: SidebarProject[]; canCreate: boolean }) {
   const router = useRouter();
@@ -169,6 +173,9 @@ export default function SidebarProjects({ projects, canCreate }: { projects: Sid
 
   const active = projects.filter((p) => !p.isCompleted);
   const completed = projects.filter((p) => p.isCompleted);
+  /** EXTRA FIX 2: >5 rows scroll inside a fixed 5-row area; ≤5 keep natural height. */
+  const activeScrolls = active.length > WORKSPACE_LIST_ROWS;
+  const completedScrolls = completed.length > WORKSPACE_LIST_ROWS;
 
   async function create() {
     if (!newKey.trim() || !newName.trim()) { setMsg("Key and name are required."); return; }
@@ -259,7 +266,7 @@ export default function SidebarProjects({ projects, canCreate }: { projects: Sid
             {/* Click-away layer: while the menu is open ANY click outside it
                 lands on this layer first and closes the menu — completely
                 independent of event propagation on whatever sits underneath
-                (board drag sensors, rows, the drawer). It closes on `click`
+                (board drag sensors, rows). It closes on `click`
                 (not mousedown) so the very same click is consumed here and
                 cannot fall through to activate the element beneath. Elements
                 above it (e.g. the z-60 sidebar toggle) are covered by the
@@ -324,7 +331,7 @@ export default function SidebarProjects({ projects, canCreate }: { projects: Sid
             type="button"
             onClick={() => {
               // The create form needs full width — open the rail first when collapsed.
-              if (!isSidebarMobile() && getCollapsed()) expandSidebar();
+              if (getCollapsed()) expandSidebar();
               setCreating((v) => !v);
               setMsg("");
             }}
@@ -374,7 +381,12 @@ export default function SidebarProjects({ projects, canCreate }: { projects: Sid
               </div>
             </div>
           )}
-          <div ref={listRef} className="sb-workspace-list" onScroll={onListScroll}>
+          <div
+            ref={listRef}
+            onScroll={onListScroll}
+            className={activeScrolls ? "sb-workspace-list" : undefined}
+            style={activeScrolls ? { maxHeight: workspaceListMaxHeight(WS_ROW_REM, WS_GAP_REM) } : undefined}
+          >
             {active.map(item)}
           </div>
           {active.length === 0 && completed.length === 0 && (
@@ -394,7 +406,14 @@ export default function SidebarProjects({ projects, canCreate }: { projects: Sid
             <IconChevronRight className={`h-3 w-3 shrink-0 transition-transform ${completedOpen ? "rotate-90" : ""}`} />
             <span className="sb-label truncate">COMPLETED ({completed.length})</span>
           </button>
-          {collapse(completedOpen, <div>{completed.map(item)}</div>)}
+          {collapse(completedOpen, (
+            <div
+              className={completedScrolls ? "sb-workspace-list" : undefined}
+              style={completedScrolls ? { maxHeight: workspaceListMaxHeight(WS_ROW_REM, WS_GAP_REM) } : undefined}
+            >
+              {completed.map(item)}
+            </div>
+          ))}
         </div>
       )}
       {editing && (

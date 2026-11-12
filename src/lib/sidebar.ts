@@ -1,34 +1,38 @@
 /**
  * Shared sidebar state (change request: collapsible sidebar).
  *
- * ONE source of truth for the whole app: two data attributes on <html>.
- *  - data-sb="expanded" | "collapsed"  — desktop rail preference, persisted in
- *    localStorage ("tt.sidebar") and restored before paint by the root layout's
- *    inline script (no flicker, no server round-trip, no schema change).
- *  - data-sb-mobile="open"              — mobile/tablet drawer, session-only.
+ * ONE source of truth for the desktop rail: the `data-sb` attribute on <html>,
+ * persisted in localStorage ("tt.sidebar") and restored before paint by the root
+ * layout's inline script (no flicker, no server round-trip, no schema change).
  *
- * The styling is plain CSS keyed off those attributes (see globals.css), so a
+ * The styling is plain CSS keyed off that attribute (see globals.css), so a
  * toggle never re-renders React trees, and only the toggle button itself keeps
  * local state for its icon/aria attributes.
  */
 
 const SIDEBAR_LS_KEY = "tt.sidebar";
 
-/** Below lg (1024px) the sidebar is a drawer; at lg+ it is the icon rail. */
-const SIDEBAR_MOBILE_MQ = "(max-width: 1023.98px)";
-
 const EVENT = "tt:sidebar";
 
-export function isSidebarMobile(): boolean {
-  return typeof window !== "undefined" && window.matchMedia(SIDEBAR_MOBILE_MQ).matches;
+/**
+ * Fixed-height workspace list: exactly this many rows are visible before the
+ * list scrolls. More than this many → fixed-height scroll area; this many or
+ * fewer → natural height (no scrollbar). Shared by the desktop sidebar and the
+ * mobile Workspaces sheet.
+ */
+export const WORKSPACE_LIST_ROWS = 5;
+
+/**
+ * CSS `max-height` for a workspace list capped at {@link WORKSPACE_LIST_ROWS}
+ * rows. `rowRem`/`gapRem` describe the row height and the gap between rows of
+ * the calling list (desktop rows and mobile sheet rows differ in size).
+ */
+export function workspaceListMaxHeight(rowRem: number, gapRem: number): string {
+  return `calc(${WORKSPACE_LIST_ROWS} * ${rowRem}rem + ${WORKSPACE_LIST_ROWS - 1} * ${gapRem}rem)`;
 }
 
 export function getCollapsed(): boolean {
   return typeof document !== "undefined" && document.documentElement.dataset.sb === "collapsed";
-}
-
-export function isMobileSidebarOpen(): boolean {
-  return typeof document !== "undefined" && document.documentElement.dataset.sbMobile === "open";
 }
 
 function emit() {
@@ -43,19 +47,6 @@ export function setCollapsed(collapsed: boolean) {
     window.localStorage.setItem(SIDEBAR_LS_KEY, root.dataset.sb);
   } catch { /* storage unavailable — the choice just won't persist */ }
   emit();
-}
-
-/** Mobile/tablet drawer: open/close (not persisted — it always starts closed). */
-export function setMobileSidebarOpen(open: boolean) {
-  const root = document.documentElement;
-  if (open) root.dataset.sbMobile = "open";
-  else delete root.dataset.sbMobile;
-  emit();
-}
-
-/** Called after navigation so the drawer never covers the next page. */
-export function closeMobileSidebar() {
-  if (isMobileSidebarOpen()) setMobileSidebarOpen(false);
 }
 
 /** Used by nested navigation actions that need full-width UI (e.g. New project). */

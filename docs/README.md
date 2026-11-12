@@ -414,9 +414,9 @@ same migrations, same tests:
 
 1. Create a database at [turso.tech](https://turso.tech) and copy its URL + token:
    ```bash
-   turso db create tasktracker
-   turso db show tasktracker --url          # libsql://<db>-<org>.turso.io
-   turso db tokens create tasktracker       # token
+   turso db create taskhub
+   turso db show taskhub --url          # libsql://<db>-<org>.turso.io
+   turso db tokens create taskhub       # token
    ```
 2. Take a read-only backup, then apply the committed migrations (from your machine, once
    per schema change):

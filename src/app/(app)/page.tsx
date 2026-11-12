@@ -5,7 +5,7 @@ import { designationLabel } from "@/lib/designation";
 import { dashboardLists, dashboardSummary } from "@/lib/dashboard";
 import { getAvailableYears, parseDashboardFilters, resolveDashboardFilters } from "@/lib/dashboardFilters";
 import StatBar from "@/components/StatBar";
-import { MobileTopBar } from "@/components/SidebarToggle";
+import ViewportSwitch from "@/components/ViewportSwitch";
 import DashboardFilterBar from "@/components/DashboardFilterBar";
 import DashboardExport from "@/components/DashboardExport";
 import {
@@ -57,7 +57,9 @@ function Card({ title, icon, action, children }: {
   children: React.ReactNode;
 }) {
   return (
-    <section className="tt-card p-3">
+    /* `min-w-0` keeps the card from stretching its grid track to the widest
+       unbreakable row; the row content truncates/wraps instead. */
+    <section className="tt-card min-w-0 p-3">
       <div className="mb-2 flex items-center gap-1.5">
         <h2 className="flex items-center gap-1.5 text-sm font-semibold">{icon}{title}</h2>
         {action && <span className="ml-auto text-xs text-muted">{action}</span>}
@@ -162,13 +164,20 @@ export default async function MyWorkPage({ searchParams }: { searchParams: Promi
 
   function row(t: (typeof assigned)[number]) {
     return (
-      <li key={t.id} className="flex items-center gap-2 rounded border bg-surface px-2 py-1 text-sm border-line">
-        <span className="font-mono text-xs text-muted">{taskKey(t.project.key, t.serial)}</span>
-        <Link href={`/p/${t.projectId}/board?task=${t.id}`} className="min-w-0 flex-1 truncate hover:underline">
-          {t.title}
-        </Link>
-        <span className="rounded px-1 text-xs" style={{ background: `${t.status.color}22`, color: t.status.color }}>{t.status.name}</span>
-        <span className="text-xs" style={{ color: t.priority.color }}>● {t.priority.name}</span>
+      /* Two lines on phones (title, then badges). From `sm` up it is one row
+         while it fits; when the card is narrow (tablet, 2-column grid) the
+         badges wrap under the title instead of squeezing it. */
+      <li key={t.id} className="rounded border bg-surface px-2 py-1 text-sm border-line sm:flex sm:flex-wrap sm:items-center sm:gap-x-2 sm:gap-y-1">
+        <div className="flex min-w-0 items-center gap-2 sm:grow sm:basis-48">
+          <span className="shrink-0 font-mono text-xs text-muted">{taskKey(t.project.key, t.serial)}</span>
+          <Link href={`/p/${t.projectId}/board?task=${t.id}`} className="min-w-0 flex-1 truncate hover:underline">
+            {t.title}
+          </Link>
+        </div>
+        <div className="mt-0.5 flex flex-wrap items-center gap-2 sm:mt-0 sm:shrink-0">
+          <span className="rounded px-1 text-xs" style={{ background: `${t.status.color}22`, color: t.status.color }}>{t.status.name}</span>
+          <span className="text-xs" style={{ color: t.priority.color }}>● {t.priority.name}</span>
+        </div>
       </li>
     );
   }
@@ -178,13 +187,17 @@ export default async function MyWorkPage({ searchParams }: { searchParams: Promi
 
   return (
     <div>
-      {/* Mobile-only shared top bar: [TaskHub icon] + title (opens the drawer). */}
+      {/* Page heading: desktop only — on mobile the top bar carries the title. */}
       <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
         <div>
-          <div className="flex items-center gap-2.5">
-            <MobileTopBar />
-            <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          </div>
+          <ViewportSwitch
+            desktop={
+              <div className="vp-desktop-only flex items-center gap-2.5">
+                <h1 className="tt-title">Dashboard</h1>
+              </div>
+            }
+            mobile={null}
+          />
           <p className="text-sm text-muted">
             Welcome back, {user.name} · {summary.projectCount} workspace{summary.projectCount === 1 ? "" : "s"} in view
           </p>

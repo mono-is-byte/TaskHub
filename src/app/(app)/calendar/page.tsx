@@ -9,9 +9,9 @@ import { dayKey, monthGrid, weekGrid, occursOn, type CalendarData, type Calendar
 import { classifyDay, holidayDayKeys, type ExceptionRow, type HolidaySpan } from "@/lib/holidayDates";
 import { TIMER_HEX, TIMER_LABEL } from "@/lib/timerFormat";
 import CalendarSettings from "@/components/CalendarSettings";
-import { MobileTopBar } from "@/components/SidebarToggle";
+import { useIsMobile } from "@/components/ViewportSwitch";
 import {
-  IconChevronLeft, IconChevronRight, IconDownload, IconFlag, IconSliders, IconSun, IconX,
+  IconCheck, IconChevronLeft, IconChevronRight, IconDownload, IconFlag, IconSliders, IconSun, IconX,
 } from "@/components/icons";
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -57,11 +57,11 @@ function useDropdown() {
   return { open, setOpen, btnRef, panelRef, pos };
 }
 
-function Panel({ open, pos, panelRef, children, className = "" }: { open: boolean; pos: { top: number; left: number; width: number }; panelRef: React.RefObject<HTMLDivElement | null>; children: React.ReactNode; className?: string }) {
+function Panel({ open, pos, panelRef, children, className = "", role }: { open: boolean; pos: { top: number; left: number; width: number }; panelRef: React.RefObject<HTMLDivElement | null>; children: React.ReactNode; className?: string; role?: string }) {
   if (!open) return null;
   const style: React.CSSProperties = { position: "fixed", top: Math.min(pos.top, (typeof window !== "undefined" ? window.innerHeight : 800) - 16), left: Math.max(8, Math.min(pos.left, (typeof window !== "undefined" ? window.innerWidth : 1200) - 320)), zIndex: 60 };
   return createPortal(
-    <div ref={panelRef} style={style} className={cx("glass-strong max-h-80 w-72 overflow-auto rounded-md border border-line p-2 text-xs shadow-lg", className)}>
+    <div ref={panelRef} role={role} style={style} className={cx("glass-strong max-h-80 w-72 overflow-auto rounded-md border border-line p-2 text-xs shadow-lg", className)}>
       {children}
     </div>,
     document.body,
@@ -81,6 +81,7 @@ function uniq<T>(arr: T[]) { return [...new Set(arr)]; }
 
 export default function CalendarPage() {
   const router = useRouter();
+  const isMobile = useIsMobile();
   const [view, setView] = useState<"month" | "week">("month");
   const [anchor, setAnchor] = useState(() => new Date());
 
@@ -246,6 +247,7 @@ export default function CalendarPage() {
   // Dropdown helpers
   const wsDrop = useDropdown();
   const userDrop = useDropdown();
+  const viewDrop = useDropdown();
   const btnBase = "tt-btn max-w-[14rem] truncate";
   const actionBtn = "rounded px-2 py-0.5 text-[11px] text-muted hover:bg-line hover:text-ink";
 
@@ -302,18 +304,50 @@ export default function CalendarPage() {
   return (
     <div>
       <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
-        <div className="flex items-center gap-2.5">
-          <MobileTopBar />
-          <h1 className="tt-title">Calendar</h1>
-        </div>
+        {!isMobile && (
+          <div className="vp-desktop-only flex items-center gap-2.5">
+            <h1 className="tt-title">Calendar</h1>
+          </div>
+        )}
         <button onClick={() => step(-1)} className="tt-btn" aria-label={view === "month" ? "Previous month" : "Previous week"} title={view === "month" ? "Previous month" : "Previous week"}><IconChevronLeft className="h-3.5 w-3.5" /></button>
         <button onClick={() => setAnchor(new Date())} className="tt-btn">Today</button>
         <button onClick={() => step(1)} className="tt-btn" aria-label={view === "month" ? "Next month" : "Next week"} title={view === "month" ? "Next month" : "Next week"}><IconChevronRight className="h-3.5 w-3.5" /></button>
         <span className="font-semibold text-[var(--text)]">{title}</span>
-        <select value={view} onChange={(e) => setView(e.target.value as "month" | "week")} className="tt-input w-auto py-1.5 text-xs" aria-label="Calendar view" title="Month or week view">
-          <option value="month">Month</option>
-          <option value="week">Week</option>
-        </select>
+        {/* Month / week view — a styled menu instead of a native <select>:
+            mobile browsers render (and zoom into) native option lists with the
+            OS font size, which looked huge on phones. */}
+        <div>
+          <button
+            ref={viewDrop.btnRef}
+            type="button"
+            className={btnBase}
+            onClick={() => viewDrop.setOpen((v) => !v)}
+            aria-haspopup="listbox"
+            aria-expanded={viewDrop.open}
+            title="Calendar view"
+          >
+            <span className="truncate">{view === "month" ? "Month" : "Week"}</span>
+            <IconChevronRight className={cx("h-3.5 w-3.5 transition-transform", viewDrop.open && "rotate-90")} />
+          </button>
+          <Panel open={viewDrop.open} pos={viewDrop.pos} panelRef={viewDrop.panelRef} role="listbox">
+            {(["month", "week"] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                role="option"
+                aria-selected={view === v}
+                onClick={() => { setView(v); viewDrop.setOpen(false); }}
+                className={cx(
+                  "flex w-full items-center gap-2 rounded px-2 py-1 text-left hover:bg-[var(--row-hover)]",
+                  view === v && "font-semibold",
+                )}
+              >
+                <span className="min-w-0 flex-1">{v === "month" ? "Month" : "Week"}</span>
+                {view === v && <IconCheck className="h-3.5 w-3.5 shrink-0 text-[#708AF4]" />}
+              </button>
+            ))}
+          </Panel>
+        </div>
 
         {/* Workspace multi-select */}
         <div>

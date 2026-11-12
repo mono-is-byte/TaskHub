@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { MobileTopBar } from "@/components/SidebarToggle";
+import { useIsMobile } from "@/components/ViewportSwitch";
 
 /**
  * Audit Log — PHASE 6.
@@ -55,6 +55,7 @@ function metaSummary(meta: string): string {
 }
 
 export default function AdminAuditPage() {
+  const isMobile = useIsMobile();
   const [logs, setLogs] = useState<Log[]>([]);
   const [actions, setActions] = useState<string[]>([]);
   const [limit, setLimit] = useState(25);
@@ -77,10 +78,11 @@ export default function AdminAuditPage() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2.5">
-          <MobileTopBar />
-          <h1 className="text-xl font-bold">Audit Log</h1>
-        </div>
+        {!isMobile && (
+          <div className="vp-desktop-only flex items-center gap-2.5">
+            <h1 className="tt-title">Audit Log</h1>
+          </div>
+        )}
         <span className="text-[11px] text-muted">Showing the latest {limit} events</span>
       </div>
       <div className="mb-2 flex gap-2 text-sm">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MobileTopBar } from "@/components/SidebarToggle";
+import { useIsMobile } from "@/components/ViewportSwitch";
 
 interface Role {
   id: string;
@@ -14,6 +14,7 @@ interface Role {
 }
 
 export default function AdminRolesPage() {
+  const isMobile = useIsMobile();
   const [roles, setRoles] = useState<Role[]>([]);
   const [actions, setActions] = useState<string[]>([]);
   const [fields, setFields] = useState<string[]>([]);
@@ -78,10 +79,11 @@ export default function AdminRolesPage() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center gap-2.5">
-        <MobileTopBar />
-        <h1 className="text-2xl font-bold">Roles & Permissions</h1>
-      </div>
+      {!isMobile && (
+        <div className="vp-desktop-only mb-4 flex items-center gap-2.5">
+          <h1 className="tt-title">Roles & Permissions</h1>
+        </div>
+      )}
       {msg && <p className="mb-2 rounded bg-slate-200 p-2 text-sm dark:bg-slate-800">{msg}</p>}
       <form onSubmit={create} className="mb-4 flex items-end gap-2">
         <label className="text-xs">New role name<input value={newName} onChange={(e) => setNewName(e.target.value)} className="mt-1 block rounded border p-1 dark:border-line dark:bg-slate-800" required /></label>

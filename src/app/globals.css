@@ -394,10 +394,11 @@ input[type="radio"] {
 .tt-card::before { content: none; }
 
 .tt-title {
-  font-size: 1.25rem;
-  line-height: 1.75rem;
+  /* One heading size for every page (matches the dashboard h1): 24px / 32px. */
+  font-size: 1.5rem;
+  line-height: 2rem;
   font-weight: 700;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.025em;
   color: var(--text);
 }
 
@@ -449,7 +450,7 @@ input[type="radio"] {
   mask-image: none;
 }
 
-/* ── Sidebar & mobile drawer (preserve behavior) ──────────────────────── */
+/* ── Desktop sidebar (collapse rail) ──────────────────────────────────── */
 .sb-toggle {
   position: fixed;
   top: 0.5rem;
@@ -472,23 +473,10 @@ input[type="radio"] {
 }
 .sb-toggle:focus-visible { outline: 2px solid #708AF4; outline-offset: 2px; }
 
-.sb-toggle img,
-.sb-logo-btn img { filter: none; }
-
-.sb-logo-btn { display: inline-flex; }
-.sb-logo-btn:hover { color: #708AF4; background: rgba(112, 138, 244, 0.12); }
-.sb-logo-btn:focus-visible { outline: 2px solid #708AF4; outline-offset: 2px; }
-
-.sb-backdrop {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-  background: rgba(15, 23, 42, 0.45);
-}
+.sb-toggle img { filter: none; }
 
 .sb-aside {
-  transition: transform 0.2s ease, width 0.2s ease;
+  transition: width 0.2s ease;
   background: var(--sidebar-bg) !important;
 }
 .sb-aside.glass,
@@ -499,27 +487,17 @@ input[type="radio"] {
   box-shadow: none;
 }
 
+/* ── Pre-hydration guard (mobile) ──────────────────────────────────────────
+   The server cannot know the viewport, so the first HTML always contains the
+   desktop shell and the client swaps to the mobile layout after hydration.
+   Below `lg` hide the desktop-only chrome with CSS (which applies before the
+   first paint) so refreshing on a phone never flashes the sidebar, its
+   floating toggle or the desktop page heading. After hydration the mobile
+   shell is mounted instead and none of these elements exist. */
 @media (max-width: 1023.98px) {
-  .sb-aside {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 40;
-    height: 100%;
-    height: 100dvh;
-    transform: translateX(-100%);
-    overflow: hidden;
-  }
-  .sb-toggle { display: none; }
-  html[data-sb-mobile="open"] .sb-aside {
-    transform: translateX(0);
-    box-shadow: var(--shadow-lg);
-  }
-  html[data-sb-mobile="open"] .sb-toggle { display: inline-flex; left: 0.75rem; right: auto; }
-  html[data-sb-mobile="open"] .sb-aside > nav { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin-top: 3rem; }
-  html[data-sb-mobile="open"] .sb-backdrop { display: block; }
-  html[data-sb-mobile="open"] .sb-foot { flex-shrink: 0; padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px)); }
+  #app-sidebar,
+  .sb-toggle,
+  .vp-desktop-only { display: none; }
 }
 
 @media (min-width: 1024px) {
@@ -581,7 +559,6 @@ input[type="radio"] {
 }
 
 .sb-workspace-list {
-  max-height: calc(5 * 1.625rem + 4 * 0.25rem);
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-gutter: stable;

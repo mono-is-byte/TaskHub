@@ -79,7 +79,7 @@ export default function WorkloadPage() {
 
   return (
     <div>
-      <h2 className="mb-1 text-lg font-bold">Workload</h2>
+      <h2 className="tt-title mb-1">Workload</h2>
       <p className="mb-2 text-xs text-muted">
         Planned hours vs capacity per person per week (Mon–Sun). Undated tasks count toward every overlapping week shown;
         tasks without dates land in the current week. Overload is highlighted.

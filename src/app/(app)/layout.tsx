@@ -11,8 +11,15 @@ import Avatar from "@/components/Avatar";
 import NavLink from "@/components/NavLink";
 import SidebarToggle from "@/components/SidebarToggle";
 import AppFooter from "@/components/AppFooter";
+import ViewportSwitch from "@/components/ViewportSwitch";
+import MobileLayout from "@/components/MobileLayout";
 import { IconAuditLog, IconCalendar, IconHome, IconKey, IconUser, IconUsers } from "@/components/icons";
 
+/**
+ * Thin shell switcher: this file owns the DESKTOP sidebar layout (unchanged) and
+ * hands the same page outlet to the standalone mobile layout. Exactly one of the
+ * two is mounted at a time (see ViewportSwitch); they share no layout code.
+ */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const { user } = await requireViewer("/");
   const projects = await listProjectsForUser(user.id, user.isSuperAdmin);
@@ -40,20 +47,25 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     }
   }
 
+  // Same serializable shape for both shells (desktop sidebar + mobile sheet).
+  const sidebarProjects = projects.map((p) => ({
+    id: p.id, key: p.key, name: p.name,
+    isCompleted: p.isCompleted, canManage: manageIds.has(p.id),
+  }));
+
   // Theme precedence: device choice (localStorage/cookie, applied by the root
   // layout's inline script before paint) > saved profile preference (seeded into
   // the cookie by the login response, re-applied here after client navigation) >
   // system default. No inline <script> here: React never executes script tags
   // rendered inside components on the client and logs a console error for them.
+  const themeSync = <ThemeSync profileTheme={user.theme} />;
 
-  return (
+  const desktop = (
     <div className="flex min-h-screen">
-      <ThemeSync profileTheme={user.theme} />
-      {/* Sidebar change request: ONE fixed toggle that follows the rail edge —
-          collapses the desktop sidebar to an icon rail, opens/closes the mobile
-          drawer. State lives on <html data-sb / data-sb-mobile> (restored
-          before paint by the root layout's inline script) so toggling never
-          re-renders pages. */}
+      {/* Sidebar change request: ONE fixed toggle that follows the rail edge and
+          collapses the desktop sidebar to an icon rail. State lives on
+          <html data-sb> (restored before paint by the root layout's inline
+          script) so toggling never re-renders pages. */}
       <SidebarToggle />
       {/* Phase 6: the sidebar is sticky + scrolls on its own, so navigation
           stays reachable while long pages scroll. */}
@@ -64,13 +76,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           {(user.isSuperAdmin || manageIds.size > 0) && (
             <NavLink href="/users" title="Users"><IconUsers className="h-4 w-4 shrink-0" /> <span className="sb-label">Users</span></NavLink>
           )}
-          <SidebarProjects
-            canCreate={canCreate}
-            projects={projects.map((p) => ({
-              id: p.id, key: p.key, name: p.name,
-              isCompleted: p.isCompleted, canManage: manageIds.has(p.id),
-            }))}
-          />
+          <SidebarProjects canCreate={canCreate} projects={sidebarProjects} />
           {user.isSuperAdmin && (
             <>
               <div className="sb-section mt-2 px-2 text-xs uppercase text-muted">Admin</div>
@@ -97,11 +103,30 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </div>
         </div>
       </aside>
-      {/* Mobile pages render their own top bar (MobileTopBar) in flow; pt-4 is just the page gutter. */}
       <main className="flex min-h-0 min-w-0 flex-1 flex-col p-4 pt-4 md:px-6">
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">{children}</div>
         <AppFooter />
       </main>
     </div>
+  );
+
+  const mobile = (
+    <MobileLayout
+      user={{ name: user.name, email: user.email, avatarUrl: user.avatarUrl }}
+      roleLabel={roleLabel}
+      projects={sidebarProjects}
+      canCreate={canCreate}
+      isSuperAdmin={user.isSuperAdmin}
+      canUseUsers={user.isSuperAdmin || manageIds.size > 0}
+    >
+      {children}
+    </MobileLayout>
+  );
+
+  return (
+    <>
+      {themeSync}
+      <ViewportSwitch desktop={desktop} mobile={mobile} />
+    </>
   );
 }

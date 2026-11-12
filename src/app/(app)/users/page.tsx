@@ -7,7 +7,7 @@ import { api } from "@/lib/client";
 import { GENDERS } from "@/lib/accountRules";
 import Avatar from "@/components/Avatar";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import { MobileTopBar } from "@/components/SidebarToggle";
+import { useIsMobile } from "@/components/ViewportSwitch";
 import { IconChevronRight, IconPlus } from "@/components/icons";
 
 /**
@@ -45,6 +45,7 @@ const inp = "rounded border p-1 text-xs dark:border-line dark:bg-slate-800";
 const btn = "rounded border px-2 py-0.5 text-xs disabled:opacity-50";
 
 export default function UsersPage() {
+  const isMobile = useIsMobile();
   const [users, setUsers] = useState<U[]>([]);
   /** Role options for the designation dropdown (from /api/users). */
   const [roles, setRoles] = useState<{ id: string; name: string }[]>([]);
@@ -224,10 +225,11 @@ export default function UsersPage() {
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-2.5">
-          <MobileTopBar />
-          <h1 className="text-2xl font-bold">Users</h1>
-        </div>
+        {!isMobile && (
+          <div className="vp-desktop-only flex items-center gap-2.5">
+            <h1 className="tt-title">Users</h1>
+          </div>
+        )}
         <p className="text-xs text-muted">
           {isAdmin
             ? "Add and edit users and set their designation (a role from Roles & Permissions — labels only, never grants permissions)."
