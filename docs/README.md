@@ -4,9 +4,10 @@
 
 <img alt="TaskHub - Kanban boards, inline-editable table, timeline, workload and calendar, reports with PDF and Excel export, per-project roles and field-level permissions" src="assets/taskhub-header.svg" width="640"/>
 
-A self-hosted, multi-user TaskHub - a lightweight project management tool for small teams.
-Kanban boards, an inline-editable table, timeline, workload, calendar and reports, with
-per-project roles, field-level permissions, custom workflows and automation.
+A self-hosted, multi-user TaskHub - a lightweight project management tool for
+small teams, optimized for both mobile and web view.
+Kanban boards, an inline-editable table, timeline, workload, calendar and reports,
+with per-project roles, field-level permissions, custom workflows and automation.
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white&style=flat-square)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black&style=flat-square)](https://react.dev/)
