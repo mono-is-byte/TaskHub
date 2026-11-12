@@ -224,19 +224,24 @@ export default function UsersPage() {
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        {!isMobile && (
-          <div className="vp-desktop-only flex items-center gap-2.5">
-            <h1 className="tt-title">Users</h1>
-          </div>
-        )}
-        <p className="text-xs text-muted">
-          {isAdmin
-            ? "Add and edit users and set their designation (a role from Roles & Permissions — labels only, never grants permissions)."
-            : "You can edit the name and designation of users in the projects you manage."}
-        </p>
+      <div className="mb-4 flex flex-wrap items-start gap-2">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          {!isMobile && (
+            <div className="vp-desktop-only flex items-center gap-2.5">
+              <h1 className="tt-title">Users</h1>
+            </div>
+          )}
+          <p className="text-xs text-muted">
+            {isAdmin
+              ? "Add and edit users and set their designation and role."  // isAdmin = true
+              : "You can edit the name and designation of users in the projects you manage."} // isAdmin = false
+          </p>
+        </div>
         {isAdmin && (
-          <button onClick={() => setShowAdd((v) => !v)} className="ml-auto inline-flex items-center gap-1 rounded bg-[#708AF4] px-3 py-1 text-sm font-semibold text-white">
+          <button
+            onClick={() => setShowAdd((v) => !v)}
+            className="ml-auto inline-flex shrink-0 items-center gap-1 rounded bg-[#708AF4] px-3 py-1 text-sm font-semibold text-white"
+          >
             <IconPlus className="h-4 w-4" /> Add user
           </button>
         )}
