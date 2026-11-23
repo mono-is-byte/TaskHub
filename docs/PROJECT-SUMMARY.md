@@ -19,7 +19,7 @@ Single-tenant: one deployment = one organisation. Not multi-tenant SaaS.
 
 | Layer | Choice | Version |
 |---|---|---|
-| Framework | Next.js **App Router** (RSC) | `^16.4.0` |
+| Framework | Next.js **App Router** (RSC) | `^16.4.6` |
 | UI | React | `^19.3.0` |
 | Styling | Tailwind CSS v4 (`@tailwindcss/postcss`) | `^4.3.3` |
 | ORM | Prisma Client with **driver adapters** | `^7.10.0` |
@@ -374,8 +374,18 @@ otherwise `turso:migrate` and `pretest.mjs` diverge.
 
 ---
 
-## 14. Current state (2026-10-31)
+## 14. Current state (2026-11-23)
 
+- **Audit Log mobile card view (2026-11-23):** Compact cards for `< 640px` showing all 5
+  fields (Time, Actor, Action, Entity, Change) with color-coded action pills, avatar with
+  initial, entity username display, and expandable Change details. Desktop `≥ 640px`
+  unchanged. Entity now shows username (`user: <username>`) instead of display name.
+  IP column removed from both desktop and mobile. Hydration mismatch fixed.
+- **Dashboard fixes (2026-11-23):** KPI cards, list cards with fixed 5-row height and
+  internal scroll, compact mobile typography, overdue/due/unassigned consistency, and
+  shared filtered scope for all cards/lists/charts. Dead code removed, stat cards
+  refactored to config map.
+- **Next.js 16.4.6** security update applied to `package.json` and lockfile.
 - **Phase 16 (2026-10-25 → 10-31) — drawer/table/members/workflow/solve + security:**
   - Drawer header: epic badge + issue type + editable title, task menu + **Close (Esc)**;
     the project name was removed. **Assigned by** moved into Properties and is

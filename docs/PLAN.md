@@ -601,3 +601,17 @@ later from a new migration if needed.
 - Dashboard: "Projects" → "WORKSPACES", completed split into "COMPLETED" section.
 - Calendar compacted to fit one page; audit log scrollable container.
 
+
+
+## Phase 17 — Audit Log mobile & Dashboard fixes (2026-11-23)
+
+- **Audit Log mobile card view:** Compact cards for `< 640px` showing all 5 fields
+  (Time, Actor, Action, Entity, Change) with color-coded action pills, avatar with
+  initial, entity username display, and expandable Change details. Desktop `>= 640px`
+  unchanged. Entity now shows username (`user: <username>`) instead of display name.
+  IP column removed from both desktop and mobile. Hydration mismatch fixed.
+- **Dashboard fixes:** KPI cards, list cards with fixed 5-row height and internal scroll,
+  compact mobile typography, overdue/due/unassigned consistency, and shared filtered
+  scope for all cards/lists/charts. Dead code removed, stat cards refactored to config map.
+- **Next.js 16.4.6** security update applied to `package.json` and lockfile.
+- Verification: `tsc --noEmit` clean; **256/256 tests (19 files)**; `npm run build` clean.

@@ -11,6 +11,16 @@ Release sections will be added here as versions are tagged.
 
 ### Added
 
+- **Audit Log mobile card view** (`< 640px`): compact cards showing all 5 fields (Time,
+  Actor, Action, Entity, Change) with color-coded action pills, avatar with initial,
+  entity username display, and expandable Change details. Desktop (`≥ 640px`) unchanged.
+- **Audit Log entity shows username**: Entity column/field now displays `user: <username>`
+  instead of display name, resolved server-side from the user's real username field.
+- **Dashboard mobile & desktop fixes**: KPI cards, list cards with fixed 5-row height and
+  internal scroll, compact mobile typography, overdue/due/unassigned consistency, and
+  shared filtered scope for all cards/lists/charts.
+- **Next.js 16.4.6** security update applied.
+
 - **Table Description column**: the board description now appears in the Table as a
   **Description** column beside the task title and is always visible (it is excluded from
   the Hide-column picker; stale saved layouts that hid it are cleaned on load).

@@ -10,8 +10,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## TaskHub project rules
 
-Read [README.md](./README.md), [PROJECT-SUMMARY.md](./PROJECT-SUMMARY.md) and the latest
-[PLAN.md](./PLAN.md) phase before changing code. The live deployment uses a remote
+Read [README.md](./docs/README.md), [PROJECT-SUMMARY.md](./docs/PROJECT-SUMMARY.md) and the latest
+[PLAN.md](./docs/PLAN.md) phase before changing code. The live deployment uses a remote
 **Turso/libSQL** database; local development uses `dev.db`.
 
 - **Back up before migrating.** Run `npm run turso:backup` and verify the snapshot before
