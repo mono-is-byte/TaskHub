@@ -1,4 +1,4 @@
-# CLEANUP_REPORT — cleanup, migration & security audit
+# CLEANUP_REPORT - cleanup, migration & security audit
 
 This file started as the conservative Phase 3 cleanup record (2026-10-24) and now also
 holds the 2026-10-31 migration/backup/security audit. Scope: remove only items proven
@@ -26,22 +26,22 @@ Migration: `20261024182738_drop_legacy_sprint_model` (SQLite table rebuilds that
 
 | Item | Why kept |
 |------|----------|
-| `Priority.level` | Actively used everywhere (settings UI, lookups API, sorting, dashboard). This is the "level-like" column the brief warned about — it is NOT dead. |
+| `Priority.level` | Actively used everywhere (settings UI, lookups API, sorting, dashboard). This is the "level-like" column the brief warned about - it is NOT dead. |
 | `Task.overdueNotifiedAt`, `Task.gitBranch`, `Task.labels`, `Task.customValues` | All referenced (timer sweep, search/export, labels, custom fields). |
 | `WorkingDayException`, `Holiday`, `SavedView`, `AutomationRule`, `Notification`, `CustomField`, `TaskStageTime`, `TaskLink`, `PasswordReset`, `LoginAttempt` | Every model has a live delegate/route; the `db.<model>` scan shows non-zero usage for all of them. |
-| All npm dependencies | `@libsql/client`, `@prisma/adapter-*`, `bcryptjs`, `better-sqlite3`, `dotenv`, `jspdf`, `next`, `react`, `react-dom`, `xlsx`, `zod` — each ≥1 real import. None removed. |
+| All npm dependencies | `@libsql/client`, `@prisma/adapter-*`, `bcryptjs`, `better-sqlite3`, `dotenv`, `jspdf`, `next`, `react`, `react-dom`, `xlsx`, `zod` - each ≥1 real import. None removed. |
 | `console.error` sites (`error.tsx`, `global-error.tsx`, `api.ts`, `instrumentation.ts`) | Error boundaries / unhandled-route logging. Intentional. |
 | `console.log` in `api/auth/forgot` | Intentional but **gated**: by default it logs a request line (including the account email) but **not** the raw token; the token is printed only when `AUTH_LOG_RESET_TOKEN=1` (local debugging). Never enable it in production. |
 | `SMTP_FROM` | Unused by the build but **explicitly documented as such** in README (`not read by the current build`). Left in place to avoid contradicting the docs; flagged here for a future decision. |
 | Migration history, `prisma/seed.ts`, `admin:create`, `turso:migrate`, `turso:backup`, `turso:copy-local`, `db-push`, `scripts/pretest.mjs`, `instrumentation.ts`, `next.config.ts`, `vercel.json` | Explicitly out of scope (protected). |
-| Unused-file scan (src `*.ts`/`*.tsx`) | Zero dead application files — every non-entry file is imported; the only "unreferenced" hits were Next.js entry points (routes, layouts, `loading.tsx`, `instrumentation.ts`). |
+| Unused-file scan (src `*.ts`/`*.tsx`) | Zero dead application files - every non-entry file is imported; the only "unreferenced" hits were Next.js entry points (routes, layouts, `loading.tsx`, `instrumentation.ts`). |
 
 ## Needs user confirmation
 
 - `SMTP_FROM`: keep as a documented-but-unused placeholder, or delete it and its
   README row? (Left in place for now.)
 
-## Story feature removed (2026-10-25) — can be re-added later
+## Story feature removed (2026-10-25) - can be re-added later
 
 - Removed the `Story` model, `Task.storyId`, `Epic.stories`, the Story API, UI,
   import/export and tests. Migration: `20261025120000_remove_story`.
@@ -51,7 +51,7 @@ Migration: `20261024182738_drop_legacy_sprint_model` (SQLite table rebuilds that
 - "Story" remains available as an **issue type** (Task / Story / Bug / Epic / Sub-task).
 - Data retained: `backup/stories-export.json` (7 stories, 10 linked tasks).
 - To re-add Story later: restore the model/relations/API/UI/import/export/tests and add a
-  **new** migration — never edit the applied ones (production already has both).
+  **new** migration - never edit the applied ones (production already has both).
 
 ## Migration & backup safety
 
@@ -82,14 +82,14 @@ Migration: `20261024182738_drop_legacy_sprint_model` (SQLite table rebuilds that
 
 Remaining risks / follow-ups:
 
-- The rate limiter is **in-process** — per-instance on serverless, best-effort rather than
+- The rate limiter is **in-process** - per-instance on serverless, best-effort rather than
   a global quota (same model as SSE).
 - `clientIp()` trusts the first `x-forwarded-for` value. Vercel overwrites it; a
   self-hosted reverse proxy must do the same or the login/forgot limits can be spoofed.
 - Change the demo `admin` password and deactivate demo accounts in production.
 - The current tree is **uncommitted/unpushed**; the live site still runs the 2026-10-25
   build. Deploying is the owner's step (no `git`/Vercel CLI in this environment).
-- Slow-load / realtime status-refresh work is paused by the owner — do not resume it
+- Slow-load / realtime status-refresh work is paused by the owner - do not resume it
   without a new request.
 
 ## Cleanup & optimization pass (2026-11-10)
@@ -127,7 +127,7 @@ schemas, migrations, env files and documented scripts were left untouched.
 
 ### Verification
 
-- `npx tsc --noEmit --noUnusedLocals --noUnusedParameters` — clean.
-- `npm test` — **256/256 passing** (19 files).
-- `npm run build` — green.
+- `npx tsc --noEmit --noUnusedLocals --noUnusedParameters` - clean.
+- `npm test` - **256/256 passing** (19 files).
+- `npm run build` - green.
 - Docs updated: this report, `README.md` and `PROJECT-SUMMARY.md` script listings.
