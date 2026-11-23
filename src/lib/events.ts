@@ -25,6 +25,20 @@ export function publish(projectId: string, type: string, payload: unknown): Proj
   const evt: ProjectEvent = { seq: ++seq, projectId, type, payload, at: Date.now() };
   emitter.emit(`project:${projectId}`, evt);
   emitter.emit("project:*", evt);
+  // Mirror onto the global stream so aggregate views (Dashboard) keep their
+  // counts live with ONE connection instead of one EventSource per workspace.
+  // The type is namespaced (`project:task_updated`) so existing global
+  // subscribers that care about `projects_changed` are unaffected.
+  const mirrored: GlobalEvent = {
+    seq: evt.seq,
+    type: `project:${type}`,
+    payload:
+      payload && typeof payload === "object"
+        ? { projectId, ...(payload as Record<string, unknown>) }
+        : { projectId, payload },
+    at: evt.at,
+  };
+  emitter.emit("global", mirrored);
   return evt;
 }
 

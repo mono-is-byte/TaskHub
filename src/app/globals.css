@@ -441,6 +441,23 @@ input[type="radio"] {
   scrollbar-width: thin;
   scrollbar-color: var(--line-strong) transparent;
 }
+
+/* Dashboard list cards: thin scrollbar for [data-dash-scroll] bodies. */
+[data-dash-scroll] {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+[data-dash-scroll]::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+[data-dash-scroll]::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 9999px;
+}
+[data-dash-scroll]::-webkit-scrollbar-track {
+  background: transparent;
+}
 .scroll-fade-bottom {
   -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 18px), transparent 100%);
   mask-image: linear-gradient(to bottom, black calc(100% - 18px), transparent 100%);
@@ -590,4 +607,15 @@ select:focus, option:focus { outline: 2px solid #708AF4; }
 
 .row-selected { box-shadow: inset 3px 0 0 0 var(--row-selected-bar); background-color: var(--row-selected-bg); }
 .row-selected:hover { background-color: rgba(112, 138, 244, 0.16) !important; }
-
+
+@media (max-width: 639px) {
+  .audit-action-filter {
+    width: 100% !important;
+    max-width: none !important;
+    font-size: 13px !important;
+    height: 36px !important;
+  }
+}
+
+
+

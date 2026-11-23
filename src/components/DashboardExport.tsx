@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { buildDashboardPdf } from "@/lib/pdf";
 import { IconDownload, IconChevronRight } from "@/components/icons";
@@ -138,7 +138,7 @@ export default function DashboardExport(props: Props) {
       {open && createPortal(
         <div
           ref={panelRef}
-          className="glass-strong fixed z-[60] w-40 rounded-md border border-line p-1 text-xs shadow-lg"
+          className="glass-strong fixed z-[60] w-40 rounded-md border border-line p-1 text-[12px] leading-[1.4] shadow-lg"
           style={{ top: pos.top, left: Math.max(8, Math.min(pos.left, window.innerWidth - 170)) }}
         >
           <button type="button" className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left hover:bg-line" onClick={() => void downloadPdf()}>
@@ -151,8 +151,60 @@ export default function DashboardExport(props: Props) {
         document.body,
       )}
       {err && (
-        <span className="text-xs text-red-600 dark:text-red-400" role="alert">{err}</span>
+        <span className="text-[12px] leading-[1.4] text-red-600 dark:text-red-400" role="alert">{err}</span>
       )}
     </span>
   );
 }
+
+const ROW_H = 40;
+const GAP = 4;
+const VISIBLE = 5;
+const BODY_H = VISIBLE * ROW_H + (VISIBLE - 1) * GAP; // 216
+
+export const DashScroll = ({ children, itemCount }: { children: ReactNode; itemCount: number }) => {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [atEnd, setAtEnd] = useState(false);
+  const scrollable = itemCount > VISIBLE;
+
+  const updateAtEnd = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setAtEnd(el.scrollTop + el.clientHeight >= el.scrollHeight - 2);
+  }, []);
+
+  useEffect(() => {
+    updateAtEnd();
+  }, [itemCount, updateAtEnd]);
+
+  const showFade = scrollable && !atEnd;
+
+  return (
+    <div className="relative">
+      <div
+        ref={scrollRef}
+        data-dash-scroll
+        onScroll={scrollable ? updateAtEnd : undefined}
+        style={{
+          height: BODY_H,
+          overflowY: scrollable ? "auto" : "hidden",
+          overscrollBehaviorY: "auto",
+          touchAction: "pan-y",
+          scrollbarWidth: "thin",
+          display: "flex",
+          flexDirection: "column",
+          gap: GAP,
+        }}
+      >
+        {children}
+      </div>
+      {showFade && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-4"
+          style={{ background: "linear-gradient(to bottom, transparent, var(--surface))" }}
+        />
+      )}
+    </div>
+  );
+};

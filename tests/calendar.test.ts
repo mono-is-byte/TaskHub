@@ -246,6 +246,7 @@ describe("dashboardSummary", () => {
     viewerId: fx.users.member,
     isAdmin: false,
     isPmScoped: false,
+    viewerCanSeeAll: true,
     ...overrides,
   });
 

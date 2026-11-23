@@ -1,7 +1,7 @@
 import * as XLSX from "xlsx";
 import { requireUser } from "@/lib/api";
 import { db, taskKey } from "@/lib/db";
-import { dashboardLists, dashboardSummary } from "@/lib/dashboard";
+import { dashboardSummary } from "@/lib/dashboard";
 import { parseDashboardFilters, resolveDashboardFilters } from "@/lib/dashboardFilters";
 
 /**
@@ -24,11 +24,8 @@ export async function GET(req: Request) {
   const state = parseDashboardFilters(sp);
   const resolved = await resolveDashboardFilters(db, { id: auth.user.id, isSuperAdmin: auth.user.isSuperAdmin }, state);
 
-  const [summary, lists] = await Promise.all([
-    dashboardSummary(db, auth.user.id, auth.user.isSuperAdmin, resolved),
-    dashboardLists(db, auth.user.id, resolved),
-  ]);
-  const { assigned, qaQueue, overdue, recent, taskDetails } = lists;
+  const summary = await dashboardSummary(db, auth.user.id, auth.user.isSuperAdmin, resolved);
+  const { assigned, qaQueue, overdue, recent, taskDetails } = summary.lists;
 
   const wb = XLSX.utils.book_new();
   const addSheet = (name: string, aoa: (string | number)[][], opts?: { widths?: number[]; autofilter?: boolean }) => {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useIsMobile } from "@/components/ViewportSwitch";
+
 
 /**
  * Audit Log — PHASE 6.
@@ -11,7 +11,7 @@ import { useIsMobile } from "@/components/ViewportSwitch";
  * no "load more", no page 2. Rows are compact and the panel scrolls on its own,
  * so all 25 fit a normal window.
  *
- * Entity ids are resolved to readable labels server-side ("user: Administrator"),
+ * Entity ids are resolved to readable labels server-side ("user: administrator"),
  * and `meta` shows as a one-line summary that expands to the full JSON on click.
  */
 
@@ -48,14 +48,20 @@ function metaSummary(meta: string): string {
         if (v && typeof v === "object") return `${k}: {…}`;
         return `${k}: ${short(v)}`;
       })
-      .join("  ·  ");
+      .join("  •  ");
   } catch {
     return short(meta);
   }
 }
 
+function getActionColor(action: string): string {
+  if (action.startsWith("auth.")) return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300";
+  if (action.startsWith("user.")) return "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300";
+  if (action.includes("failed") || action.includes("error")) return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300";
+  return "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
+}
+
 export default function AdminAuditPage() {
-  const isMobile = useIsMobile();
   const [logs, setLogs] = useState<Log[]>([]);
   const [actions, setActions] = useState<string[]>([]);
   const [limit, setLimit] = useState(25);
@@ -78,26 +84,70 @@ export default function AdminAuditPage() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        {!isMobile && (
-          <div className="vp-desktop-only flex items-center gap-2.5">
-            <h1 className="tt-title">Audit Log</h1>
-          </div>
-        )}
-        <span className="text-[11px] text-muted">Showing the latest {limit} events</span>
+        <span className="text-[12px] sm:text-[11px] text-muted">Showing the latest {limit} events</span>
       </div>
       <div className="mb-2 flex gap-2 text-sm">
         <select
           value={filter}
           onChange={(e) => { setFilter(e.target.value); void load(e.target.value); }}
-          className="tt-input max-w-xs"
+          className="tt-input max-w-xs audit-action-filter"
           aria-label="Filter by action"
         >
           <option value="">All actions</option>
           {actions.map((a) => <option key={a} value={a}>{a}</option>)}
         </select>
       </div>
+      {/* Mobile: card list (<640px). Desktop table below is unchanged. */}
+      <div className="sm:hidden flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overflow-x-hidden pb-20">
+        {logs.map((l) => {
+          const d = new Date(l.createdAt);
+          const nowYear = new Date().getFullYear();
+          const timeShort = d.toLocaleString(undefined, {
+            ...(d.getFullYear() !== nowYear ? { year: "numeric" as const } : {}),
+            month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit",
+          });
+          const timeFull = d.toLocaleString(undefined, { year: "numeric", month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+          const entity = l.entityLabel ?? (l.entity ? `${l.entity} ${l.entityId?.slice(0, 8) ?? ""}` : "—");
+          return (
+            <article key={l.id} className="w-full rounded-lg border border-line bg-surface-strong px-4 py-3 shadow-sm" style={{ lineHeight: 1.35 }}>
+              <div className="flex items-start justify-between gap-2">
+                <span className={`min-w-0 rounded px-2 py-1 font-mono text-[11px] ${getActionColor(l.action)}`} style={{ overflowWrap: "anywhere" }}>{l.action}</span>
+                <span className="shrink-0 text-[11px] text-muted" title={timeFull}>{timeShort}</span>
+              </div>
+              <div className="mt-3 flex items-center gap-2">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-[12px] font-semibold">
+                  {l.actor?.name?.charAt(0).toUpperCase() || "—"}
+                </div>
+                <div className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-semibold" style={{ minWidth: 0, wordBreak: "normal" }} title={l.actor?.name ?? "—"}>{l.actor?.name ?? "—"}</div>
+              </div>
+              <div className="mt-3 flex items-center gap-3 border-t border-line pt-3">
+                <div className="flex min-w-0 flex-1 items-center justify-between">
+                  <div className="text-[10px] uppercase tracking-[0.04em] text-muted">Entity</div>
+                  <div className="truncate text-[12px]" title={entity}>{entity}</div>
+                </div>
+              </div>
+              <div className="mt-3 flex items-center gap-3">
+                <div className="flex min-w-0 flex-1 items-center justify-between">
+                  <div className="text-[10px] uppercase tracking-[0.04em] text-muted">Change</div>
+                  <div className="truncate text-[12px]">
+                    <details className="min-w-0">
+                      <summary className="cursor-pointer truncate" title={l.meta} style={{ minHeight: 32, display: "flex", alignItems: "center" }}>
+                        <span className="inline-flex items-center rounded bg-muted px-2 py-1 text-xs">{metaSummary(l.meta)}</span>
+                      </summary>
+                      <pre className="mt-2 max-h-40 overflow-auto rounded bg-muted p-2 font-mono text-[11px]" style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", overflowX: "auto" }}>{l.meta}</pre>
+                    </details>
+                  </div>
+                </div>
+              </div>
+            </article>
+          );
+        })}
+        {logs.length === 0 && (
+          <div className="rounded-lg border border-line bg-surface-strong p-6 text-center text-[12px] text-muted">No audit events yet.</div>
+        )}
+      </div>
       {/* One scroll container: sticky head, compact rows, no empty tail. */}
-      <div className="scroll-thin min-h-0 flex-1 overflow-y-auto overflow-x-hidden rounded-lg border border-line bg-surface-strong">
+      <div className="hidden sm:block scroll-thin min-h-0 flex-1 overflow-y-auto overflow-x-hidden rounded-lg border border-line bg-surface-strong">
         <table className="w-full text-xs">
           <thead className="sticky top-0 bg-surface-strong text-left">
             <tr>
@@ -106,7 +156,6 @@ export default function AdminAuditPage() {
               <th className="p-2 font-semibold">Action</th>
               <th className="p-2 font-semibold">Entity</th>
               <th className="p-2 font-semibold">Change</th>
-              <th className="p-2 font-semibold">IP</th>
             </tr>
           </thead>
           <tbody>
@@ -118,7 +167,7 @@ export default function AdminAuditPage() {
                     hour: "2-digit", minute: "2-digit",
                   })}
                 </td>
-                <td className="break-all p-2">{l.actor ? `${l.actor.name} (${l.actor.email})` : "—"}</td>
+                <td className="break-all p-2">{l.actor ? l.actor.name : "—"}</td>
                 <td className="break-all p-2 font-mono">{l.action}</td>
                 <td className="p-2">
                   {l.entityLabel ?? (l.entity ? `${l.entity} ${l.entityId?.slice(0, 8) ?? ""}` : "—")}
@@ -129,11 +178,10 @@ export default function AdminAuditPage() {
                     <pre className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap break-all font-mono text-[10px]">{l.meta}</pre>
                   </details>
                 </td>
-                <td className="whitespace-nowrap p-2 font-mono">{l.ip ?? "—"}</td>
               </tr>
             ))}
             {logs.length === 0 && (
-              <tr><td colSpan={6} className="p-6 text-center text-muted">No audit events yet.</td></tr>
+              <tr><td colSpan={5} className="p-6 text-center text-muted">No audit events yet.</td></tr>
             )}
           </tbody>
         </table>

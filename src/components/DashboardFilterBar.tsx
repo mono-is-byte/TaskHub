@@ -48,7 +48,7 @@ function Panel({ open, pos, panelRef, children, className = "" }: { open: boolea
   if (!open) return null;
   const style: React.CSSProperties = { position: "fixed", top: Math.min(pos.top, (typeof window !== "undefined" ? window.innerHeight : 800) - 16), left: Math.max(8, Math.min(pos.left, (typeof window !== "undefined" ? window.innerWidth : 1200) - 320)), zIndex: 60 };
   return createPortal(
-    <div ref={panelRef} style={style} className={cx("glass-strong max-h-80 w-72 overflow-auto rounded-md border border-line p-2 text-xs shadow-lg", className)}>
+    <div ref={panelRef} style={style} className={cx("glass-strong max-h-80 w-72 overflow-auto rounded-md border border-line p-2 text-[12px] leading-[1.4] shadow-lg", className)}>
       {children}
     </div>,
     document.body,
@@ -85,6 +85,49 @@ export default function DashboardFilterBar({
   const pathname = usePathname();
   const sp = useSearchParams();
 
+  // Live dashboard refresh: task/project mutations publish global SSE events.
+  useEffect(() => {
+    let stopped = false;
+    let es: EventSource | null = null;
+    let poll: ReturnType<typeof setInterval> | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const schedule = () => {
+      if (stopped || timer) return;
+      timer = setTimeout(() => {
+        timer = null;
+        router.refresh();
+      }, 600);
+    };
+    const onMessage = (ev: MessageEvent) => {
+      try {
+        const data = JSON.parse(ev.data) as { type?: string };
+        if (data.type === "projects_changed" || (typeof data.type === "string" && data.type.startsWith("project:task_"))) {
+          schedule();
+        }
+      } catch { /* keep-alive / malformed frame */ }
+    };
+    try {
+      es = new EventSource("/api/events");
+      es.onmessage = onMessage;
+      es.onerror = () => {
+        es?.close();
+        es = null;
+        if (!poll && !stopped) poll = setInterval(schedule, 15000);
+      };
+    } catch {
+      poll = setInterval(schedule, 15000);
+    }
+    const onFocus = () => schedule();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      stopped = true;
+      es?.close();
+      if (poll) clearInterval(poll);
+      if (timer) clearTimeout(timer);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [router]);
+
   const now = new Date();
   const curMonth = now.getMonth() + 1;
   const curYear = now.getFullYear();
@@ -119,7 +162,7 @@ export default function DashboardFilterBar({
     if (allCompletedSelected && noneOngoingSelected) return "Completed Workspaces";
     if (selectedWsIds.length === 1) {
       const w = workspaces.find((x) => x.id === selectedWsIds[0]);
-      return w ? `${w.key} · ${w.name}` : "1 workspace";
+      return w ? `${w.key} • ${w.name}` : "1 workspace";
     }
     return `${selectedWsIds.length} workspaces`;
   }, [wsExplicitNone, selectedWsIds, allSelected, allOngoingSelected, allCompletedSelected, noneCompletedSelected, noneOngoingSelected, workspaces]);
@@ -236,7 +279,7 @@ export default function DashboardFilterBar({
   // Users
   const userSel = sp.getAll("user");
   const usersExplicitNone = userSel.includes("__none");
-  const usersAllMode = userSel.length === 0; // default: all users selected
+  const usersAllMode = userSel.length === 0 || usersExplicitNone; // default/clear: all users selected
   const setUsers = (ids: string[], unassigned: boolean, explicitNone = false) => {
     navigate((p) => {
       p.delete("user");
@@ -249,7 +292,7 @@ export default function DashboardFilterBar({
     });
   };
   const selectAllUsers = () => setUsers([], false); // clear params => all users
-  const clearUsers = () => setUsers([], false, true); // explicit clear
+  const clearUsers = () => setUsers([], false); // behave like All users
   const toggleUser = (id: string) => {
     if (usersAllMode) {
       setUsers([id], false); // switch from All users to only this user
@@ -288,7 +331,7 @@ export default function DashboardFilterBar({
     const yLabel = yearIsNone ? "No years" : (yearAll || (availableYears.length > 0 && selectedYears.length === availableYears.length)) ? "All years" : selectedYears.length === 1 ? String(selectedYears[0]) : selectedYears.length === 0 ? "No years" : `${selectedYears.length} years`;
     if ((monthAll || selectedMonths.length === 12) && (yearAll || (availableYears.length > 0 && selectedYears.length === availableYears.length))) return "All periods";
     if (monthIsNone && yearIsNone) return "No period selected";
-    return `${mLabel} · ${yLabel}`;
+    return `${mLabel} • ${yLabel}`;
   }, [monthIsNone, yearIsNone, monthAll, yearAll, selectedMonths, selectedYears, availableYears]);
 
   const userIdsSel = userSel.filter((u) => u !== "unassigned" && u !== "__none");
@@ -300,8 +343,8 @@ export default function DashboardFilterBar({
     ? "My data"
     : isAllUsers ? "All users" : usersExplicitNone ? "0 selected" : `${userIdsSel.length + (unSel ? 1 : 0)} selected`;
 
-  const btnBase = "tt-btn max-w-[14rem] truncate";
-  const actionBtn = "rounded-md border border-line bg-surface px-2 py-0.5 text-[11px] font-medium text-muted hover:bg-line hover:text-ink";
+  const btnBase = "tt-btn max-w-[14rem] truncate text-[12px] font-medium leading-[1.4]";
+  const actionBtn = "rounded-md border border-line bg-surface px-2 py-0.5 text-[12px] font-medium leading-[1.4] text-muted hover:bg-line hover:text-ink";
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -320,13 +363,13 @@ export default function DashboardFilterBar({
           <RowBtn checked={allOngoingSelected && noneCompletedSelected && selectedWsIds.length > 0} label="Ongoing Workspaces" onClick={selectOngoing} bold />
           <RowBtn checked={allCompletedSelected && noneOngoingSelected && selectedWsIds.length > 0} label="Completed Workspaces" onClick={selectCompleted} bold />
           <div className="my-1 border-t border-line" />
-          {ongoing.length > 0 && <div className="px-2 py-1 text-[10px] font-semibold uppercase text-muted">Ongoing</div>}
+          {ongoing.length > 0 && <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] leading-[1.4] text-muted">Ongoing</div>}
           {ongoing.map((w) => (
-            <RowBtn key={w.id} checked={selectedWsSet.has(w.id)} label={`${w.key} · ${w.name}`} onClick={() => toggleWorkspace(w.id)} indent />
+            <RowBtn key={w.id} checked={selectedWsSet.has(w.id)} label={`${w.key} • ${w.name}`} onClick={() => toggleWorkspace(w.id)} indent />
           ))}
-          {completed.length > 0 && <div className="mt-1 px-2 py-1 text-[10px] font-semibold uppercase text-muted">Completed</div>}
+          {completed.length > 0 && <div className="mt-1 px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] leading-[1.4] text-muted">Completed</div>}
           {completed.map((w) => (
-            <RowBtn key={w.id} checked={selectedWsSet.has(w.id)} label={`${w.key} · ${w.name}`} onClick={() => toggleWorkspace(w.id)} indent />
+            <RowBtn key={w.id} checked={selectedWsSet.has(w.id)} label={`${w.key} • ${w.name}`} onClick={() => toggleWorkspace(w.id)} indent />
           ))}
           {workspaces.length === 0 && <p className="px-2 py-1 text-muted">No workspaces.</p>}
         </Panel>
@@ -342,10 +385,10 @@ export default function DashboardFilterBar({
           <div className="space-y-3">
             <div>
               <div className="mb-1 flex items-center justify-between gap-2 px-1">
-                <span className="text-[11px] font-semibold uppercase tracking-wide text-muted">Month</span>
+                <span className="text-[11px] font-semibold uppercase tracking-[0.04em] leading-[1.4] text-muted">Month</span>
                 <div className="flex items-center gap-1 rounded-md border border-line bg-surface p-0.5">
-                  <button type="button" className="rounded px-2 py-0.5 text-[11px] text-muted hover:bg-line hover:text-ink" onClick={() => setMonths("all")}>Select All</button>
-                  <button type="button" className="rounded px-2 py-0.5 text-[11px] text-muted hover:bg-line hover:text-ink" onClick={() => setMonths("none")}>Clear</button>
+                  <button type="button" className="rounded px-2 py-0.5 text-[12px] leading-[1.4] text-muted hover:bg-line hover:text-ink" onClick={() => setMonths("all")}>Select All</button>
+                  <button type="button" className="rounded px-2 py-0.5 text-[12px] leading-[1.4] text-muted hover:bg-line hover:text-ink" onClick={() => setMonths("none")}>Clear</button>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-x-1">
@@ -356,10 +399,10 @@ export default function DashboardFilterBar({
             </div>
             <div className="border-t border-line pt-2">
               <div className="mb-1 flex items-center justify-between gap-2 px-1">
-                <span className="text-[11px] font-semibold uppercase tracking-wide text-muted">Year</span>
+                <span className="text-[11px] font-semibold uppercase tracking-[0.04em] leading-[1.4] text-muted">Year</span>
                 <div className="flex items-center gap-1 rounded-md border border-line bg-surface p-0.5">
-                  <button type="button" className="rounded px-2 py-0.5 text-[11px] text-muted hover:bg-line hover:text-ink" onClick={() => setYears("all")}>Select All</button>
-                  <button type="button" className="rounded px-2 py-0.5 text-[11px] text-muted hover:bg-line hover:text-ink" onClick={() => setYears("none")}>Clear</button>
+                  <button type="button" className="rounded px-2 py-0.5 text-[12px] leading-[1.4] text-muted hover:bg-line hover:text-ink" onClick={() => setYears("all")}>Select All</button>
+                  <button type="button" className="rounded px-2 py-0.5 text-[12px] leading-[1.4] text-muted hover:bg-line hover:text-ink" onClick={() => setYears("none")}>Clear</button>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-x-1">
@@ -375,7 +418,7 @@ export default function DashboardFilterBar({
 
       {/* User filter */}
       <div>
-        <button ref={userDrop.btnRef} type="button" className={btnBase} onClick={() => userDrop.setOpen((v) => !v)} title="User filter" disabled={!canFilterUsers && isRegularUser}>
+        <button ref={userDrop.btnRef} type="button" className={btnBase} onClick={() => userDrop.setOpen((v) => !v)} title="User filter">
           <span className="truncate">{userLabel}</span>
           <IconChevronRight className={cx("h-3.5 w-3.5 transition-transform", userDrop.open && "rotate-90")} />
         </button>
@@ -383,8 +426,8 @@ export default function DashboardFilterBar({
           <div className="mb-2 flex items-center justify-between gap-2 px-1">
             <span className="font-semibold">Users</span>
             <div className="flex items-center gap-1 rounded-md border border-line bg-surface p-0.5">
-              <button type="button" className="rounded px-2 py-0.5 text-[11px] text-muted hover:bg-line hover:text-ink" onClick={selectAllUsers}>Select All</button>
-              <button type="button" className="rounded px-2 py-0.5 text-[11px] text-muted hover:bg-line hover:text-ink" onClick={clearUsers}>Clear</button>
+              <button type="button" className="rounded px-2 py-0.5 text-[12px] leading-[1.4] text-muted hover:bg-line hover:text-ink" onClick={selectAllUsers}>Select All</button>
+              <button type="button" className="rounded px-2 py-0.5 text-[12px] leading-[1.4] text-muted hover:bg-line hover:text-ink" onClick={clearUsers}>Clear</button>
             </div>
           </div>
           <RowBtn checked={isAllUsers} label="All users" onClick={selectAllUsers} bold />
@@ -398,4 +441,4 @@ export default function DashboardFilterBar({
       </div>
     </div>
   );
-}
+}

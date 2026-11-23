@@ -43,6 +43,8 @@ export interface ResolvedDashboardFilters {
   viewerId: string;
   isAdmin: boolean;
   isPmScoped: boolean;
+  /** True when the viewer is Admin or a Project Manager — always sees every task. */
+  viewerCanSeeAll: boolean;
 }
 
 export interface DashboardViewer {
@@ -188,7 +190,10 @@ export function parseDashboardFilters(sp: Record<string, string | string[] | und
   const includeUnassigned = !explicitNone && userParams.includes("unassigned");
   const userIds = explicitNone ? [] : uniq(userParams.filter((u) => u !== "unassigned" && u !== "__none"));
 
-  return { workspaceIds, months, years, userIds, includeUnassigned, explicitUserNone: explicitNone } as DashboardFilterState & { explicitUserNone?: boolean };
+  return {
+    workspaceIds, months, years, userIds, includeUnassigned,
+    explicitUserNone: explicitNone,
+  } as DashboardFilterState & { explicitUserNone?: boolean };
 }
 
 /** Build a query string from filter state (canonical). */
@@ -302,6 +307,7 @@ export async function resolveDashboardFilters(
   let userIds: string[] = [];
   let includeUnassigned = false;
   if (explicitUserNone) {
+    // "0 selected" / clear behaves like "All users".
     userIds = [];
     includeUnassigned = false;
   } else if (viewer.isSuperAdmin) {
@@ -324,7 +330,7 @@ export async function resolveDashboardFilters(
     includeUnassigned = false;
   }
 
-  const hasUserFilter = explicitUserNone || userIds.length > 0 || includeUnassigned;
+  const hasUserFilter = !explicitUserNone && (userIds.length > 0 || includeUnassigned);
 
   // Months/Years -> effective periods (Cartesian). Sentinel [-1] means "all".
   const monthsAll = !!(state.months && state.months.length === 1 && state.months[0] === -1);
@@ -378,7 +384,7 @@ export async function resolveDashboardFilters(
     if (allSel) workspaceLabel = "All Workspaces";
     else if (allOngoingSel) workspaceLabel = "Ongoing Workspaces";
     else if (allCompletedSel) workspaceLabel = "Completed Workspaces";
-    else if (projects.length === 1) workspaceLabel = `${projects[0].key} · ${projects[0].name}`;
+    else if (projects.length === 1) workspaceLabel = `${projects[0].key} • ${projects[0].name}`;
     else workspaceLabel = `${projects.length} workspaces`;
   }
 
@@ -412,6 +418,7 @@ export async function resolveDashboardFilters(
     viewerId: viewer.id,
     isAdmin: viewer.isSuperAdmin,
     isPmScoped,
+    viewerCanSeeAll: viewer.isSuperAdmin || isPmScoped,
   };
 }
 
