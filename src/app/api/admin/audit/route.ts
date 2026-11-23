@@ -28,8 +28,8 @@ async function entityLabels(rows: { entity: string | null; entityId: string | nu
 
   const userIds = ids("user");
   if (userIds.length) {
-    for (const u of await db.user.findMany({ where: { id: { in: userIds } }, select: { id: true, name: true } })) {
-      labels.set(key("user", u.id), `user: ${u.name}`);
+    for (const u of await db.user.findMany({ where: { id: { in: userIds } }, select: { id: true, name: true, username: true } })) {
+      labels.set(key("user", u.id), `user: ${u.username}`);
     }
   }
   const roleIds = ids("role");
