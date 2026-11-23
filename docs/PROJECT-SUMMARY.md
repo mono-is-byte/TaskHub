@@ -41,45 +41,46 @@ pre-16 memory for APIs, conventions and file structure.
 ## 3. Repository layout
 
 ```
-Task-Tracker/
-├── prisma/
-│   ├── schema.prisma              # 27 models, provider = "sqlite"
-│   ├── migrations/                # 23 committed migrations (source of truth)
-│   └── seed.ts                    # demo data; DEMO_PASSWORD = "Demo1234!"
-├── prisma.config.ts               # Prisma 7 config: schema path, migrations path, seed
-├── scripts/
-│   ├── pretest.mjs                # builds scratch SQLite DBs from migrations for tests
-│   ├── migrate-turso.mjs          # replays migrations against remote libSQL/Turso
-│   ├── copy-local-to-turso.mjs    # copy local dev.db data into Turso
-│   ├── create-admin.ts            # create/repair the fixed super-admin
-│   ├── repair-designations.ts     # one-time pass: align stale designations with held roles
-│   ├── gen-pwa-icons.js           # rasterize the brand icon into the PWA PNG sizes
-│   ├── crawl-check.mjs            # HTTP crawl smoke check
-│   ├── import-check.mjs, sse-check.mjs, _apply-migration.mjs, remove-customer-impact-option.mjs
-├── src/
-│   ├── app/
-│   │   ├── (app)/                 # authenticated shell (layout = sidebar + header)
-│   │   │   ├── page.tsx           # Dashboard
-│   │   │   ├── admin/{audit,roles,users}/
-│   │   │   ├── calendar/
-│   │   │   ├── p/[id]/
-│   │   │   │   ├── board/ table/ timeline/ reports/ workload/
-│   │   │   │   ├── archive/ members/ settings/
-│   │   │   ├── profile/
-│   │   │   └── users/
-│   │   ├── api/                   # 44 route handlers (see §8)
-│   │   ├── change-password/  forgot-password/  login/  no-access/
-│   │   ├── layout.tsx  globals.css
-│   │   └── instrumentation.ts     # server-start timer sweep (unreliable on serverless)
-│   ├── components/                # 21 client components
-│   ├── hooks/                     # useProject.ts (SSE + polling), useTicker.ts
-│   └── lib/                       # 35 server/domain modules (see §5)
-├── tests/                         # 19 Vitest files, 256 tests
-├── vercel.json                    # { "regions": ["bom1"] }
-├── next.config.ts                 # serverExternalPackages + security headers
-├── README.md                      # user-facing docs
-├── PLAN.md                        # architecture + 16 phases of history/decisions
-└── AGENTS.md                      # Next.js 16 agent rules (auto-generated block)
+TaskHub/
+├─ prisma/
+│  ├─ schema.prisma          # users, projects, tasks, roles, workflow, timer…
+│  ├─ seed.ts                # demo data + default roles, statuses, automation
+│  └─ migrations/            # committed SQL migrations (source of truth)
+├─ scripts/
+│  ├─ pretest.mjs            # builds scratch test DBs from migrations (runs on npm test)
+│  ├─ _apply-migration.mjs   # applies committed migrations to the dev database
+│  ├─ migrate-turso.mjs      # applies committed migrations to a remote Turso DB
+│  ├─ copy-local-to-turso.mjs # copies the local SQLite data up to a remote Turso DB
+│  ├─ create-admin.ts        # create/repair the fixed super-admin (local or Turso)
+│  ├─ repair-designations.ts # one-time pass: align stale user designations with held roles
+│  ├─ gen-pwa-icons.js       # rasterize the brand icon into the PWA PNG sizes
+│  ├─ crawl-check.mjs        # logs in and crawls every page / API route
+│  ├─ import-check.mjs       # CSV/XLSX import smoke check
+│  ├─ sse-check.mjs          # realtime (SSE) smoke check
+│  └─ remove-customer-impact-option.mjs  # one-off: legacy option-value cleanup
+├─ src/
+│  ├─ app/
+│  │  ├─ (app)/              # authenticated shell
+│  │  │  ├─ page.tsx         # dashboard
+│  │  │  ├─ calendar/        # month / week calendar
+│  │  │  ├─ users/           # user administration
+│  │  │  ├─ profile/         # profile, email, password, sessions, avatar
+│  │  │  ├─ admin/           # roles & permissions, audit log
+│  │  │  └─ p/[id]/          # board, table, timeline, workload,
+│  │  │                      # reports, archive, members, settings
+│  │  ├─ api/                # route handlers (auth, users, projects, tasks…)
+│  │  ├─ login/ · change-password/ · forgot-password/
+│  │  └─ layout.tsx · globals.css · error boundaries
+│  ├─ components/            # shared UI (task drawer, dialogs, theme toggle…)
+│  ├─ hooks/                 # client data hooks (project data + SSE)
+│  └─ lib/                   # domain logic (permissions, tasks, workflow,
+│                            # timer, calendar, reports, pdf…)
+├─ docs/                     # README.md, project notes
+│  └─ assets/                # header, icon and demo
+├─ tests/                    # Vitest suites
+├─ next.config.ts            # security headers
+├─ prisma.config.ts          # Prisma 7 config (datasource URL from env)
+└─ .env.example              # environment template
 ```
 
 ---
